@@ -93,6 +93,9 @@ gear_tip_radius    = gear_pitch_radius + gear_addendum;
 gear_outer_radius  = gear_tip_radius;
 gear_backlash      = 0.20;
 gear_mesh_clearance = 0.15;
+// Sobrepoe a raiz de cada dente ao disco central. Sem esta intersecao real,
+// o preview OpenCSG exibe faces coplanares como se o pinhao fosse transparente.
+gear_tooth_root_overlap = 0.20;
 rack_width         = 4.0;
 pinion_thickness   = 7.0;
 pinion_tooth_width_pitch = rack_pitch / 2 - gear_backlash;
@@ -257,7 +260,12 @@ module pinion_profile_solid(teeth=gear_teeth, pitch=rack_pitch) {
   inv_pitch = tan(gear_pressure_angle)*180/PI-gear_pressure_angle;
   half_pitch_angle = pinion_tooth_width_pitch/(2*r_pitch)*180/PI;
   flank_offset = half_pitch_angle+inv_pitch;
+  root_anchor = r_root-gear_tooth_root_overlap;
   steps = 7;
+
+  assert(gear_tooth_root_overlap > 0
+         && gear_tooth_root_overlap < r_root,
+         "Sobreposicao da raiz do dente fora do intervalo valido");
 
   function involute_angle(r) =
     let(t=sqrt((r/r_base)*(r/r_base)-1)) t*180/PI-atan(t);
@@ -273,9 +281,11 @@ module pinion_profile_solid(teeth=gear_teeth, pitch=rack_pitch) {
   tip_arc = [for (j=[1:3])
     let(a=-tip_a+2*tip_a*j/4) [r_tip*cos(a),r_tip*sin(a)]];
   tooth_polygon = concat(
-    [[r_root*cos(-flank_offset),r_root*sin(-flank_offset)]],
+    // Os pontos de ancoragem ficam dentro do disco de raiz. A sobreposicao
+    // elimina a costura coplanar que causava artefatos de transparencia no F5.
+    [[root_anchor*cos(-flank_offset),root_anchor*sin(-flank_offset)]],
     lower_flank,tip_arc,upper_flank,
-    [[r_root*cos(flank_offset),r_root*sin(flank_offset)]]
+    [[root_anchor*cos(flank_offset),root_anchor*sin(flank_offset)]]
   );
 
   union() {

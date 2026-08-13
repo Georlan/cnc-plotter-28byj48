@@ -46,7 +46,7 @@ module cnc_plotter_assembly(
     translate([carriage_x0,front_rail_y,base_h])
       carrinho_x_motriz();
 
-  color([1.0,0.50,0.08])
+  color([1.0,0.50,0.08,1.0])
     translate([pos_x,front_rail_y+x_rack_center_y-pinion_thickness/2,
                motor_x_axis_z])
       rotate([-90,0,0])
@@ -79,7 +79,7 @@ module cnc_plotter_assembly(
   color([0.30,0.36,0.41])
     translate([cy_x0,cy_y0,y_beam_top_z]) carrinho_y();
 
-  color([1.0,0.50,0.08])
+  color([1.0,0.50,0.08,1.0])
     translate([pos_x+y_rack_center_x-pinion_thickness/2,
                motor_y_axis_y,motor_y_axis_z])
       rotate([0,90,0])
@@ -101,7 +101,7 @@ module cnc_plotter_assembly(
 
   pz_x = cy_x0+z_motor_axis_x_local;
   pz_z = y_beam_top_z+z_motor_axis_z_local;
-  color([1.0,0.50,0.08])
+  color([1.0,0.50,0.08,1.0])
     translate([pz_x,plunger_y-pinion_thickness/2,pz_z])
       rotate([-90,0,0])
         rotate([0,0,pinion_angle(pos_z,+1,pinion_phase_z)])
