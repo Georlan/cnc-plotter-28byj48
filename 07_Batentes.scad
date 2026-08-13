@@ -1,27 +1,31 @@
 /*
-  =============================================================================
-  07_Batentes.scad - Batentes Removíveis Minimalistas (Low-Cost)
-  =============================================================================
-  Batentes mecânicos enxutos aparafusáveis com 1 único parafuso M3 cada.
-  Instalados APÓS a inserção do carrinho no trilho.
+  Batentes removiveis de pressao. Imprimir em PETG.
+  Quatro unidades X (duas por trilho) e duas unidades Y. Nao usam parafuso;
+  a folga de 0,10 mm deve ser confirmada no cupom antes da impressao final.
 */
 
 include <00_Parametros.scad>;
 
-module batente_removivel_x() {
+module batente_x() {
   difference() {
-    cube([5.0, 30.0, dovetail_height + 4.0], center=false);
-    translate([2.5, 5.0, 4.0]) rotate([0, 90, 0]) cylinder(r=1.6, h=10, center=true);
+    translate([0,-(dovetail_width_top+4)/2,0])
+      cube([6,dovetail_width_top+4,dovetail_height+2.2]);
+    translate([0,0,-0.35])
+      dovetail_female_x(6,clearance=0.10);
+    // Rasgo inferior permite pequena flexao ao pressionar no fim do trilho.
+    translate([-EPS,-0.6,-EPS]) cube([6+2*EPS,1.2,2.2]);
   }
 }
 
-module batente_removivel_y() {
+module batente_y() {
   difference() {
-    cube([24.0, 5.0, dovetail_height + 4.0], center=false);
-    translate([5.0, 2.5, 4.0]) rotate([90, 0, 0]) cylinder(r=1.6, h=10, center=true);
+    translate([-(dovetail_width_top+4)/2,0,0])
+      cube([dovetail_width_top+4,6,dovetail_height+2.2]);
+    translate([0,0,-0.35])
+      dovetail_female_y(6,clearance=0.10);
+    translate([-0.6,-EPS,-EPS]) cube([1.2,6+2*EPS,2.2]);
   }
 }
 
-// Renderização dos batentes dispostos para impressão
-translate([0, 0, 0]) batente_removivel_x();
-translate([12, 0, 0]) batente_removivel_y();
+for (i=[0:3]) translate([i*24,0,0]) batente_x();
+for (i=[0:1]) translate([i*24,24,0]) batente_y();

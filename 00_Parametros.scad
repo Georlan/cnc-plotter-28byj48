@@ -1,364 +1,339 @@
 /*
-  =============================================================================
-  00_Parametros.scad - Centralizador Global (GEOMETRIA CORRIGIDA DEFINITIVA)
-  =============================================================================
-  Todas as constantes, folgas FDM e módulos geométricos compartilhados.
-  
-  CORREÇÕES APLICADAS:
-  - dovetail_male/female reescritos com orientação inequívoca (_x e _y), min Z = 0
-  - rack_x / rack_y / rack_z canônicos com base sólida (0.6mm) + hull()
-  - pinion_gear com dentes que ultrapassam o pitch circle (addendum correto)
-  - d_shaft_solid / d_shaft_hole unificados para motor e pinhão
-  - Overlap controlado em uniões para solidez 100% 1-manifold sem componentes soltos
-  =============================================================================
+  Parametros globais — portico apoiado em dois trilhos X.
+
+  Sistema de coordenadas da montagem:
+    X = largura do desenho / deslocamento do portico
+    Y = comprimento do papel / deslocamento do carrinho da caneta
+    Z = vertical; superficie da bancada em Z=0
+
+  Materiais previstos:
+    PLA  : trilhos, viga-caixao e carrinhos rigidos
+    PETG : sapata passiva flutuante do segundo trilho
 */
 
 $fn = 50;
+EPS = 0.01;
 
-// =============================================================================
-// 1. CONSTANTES E TOLERÂNCIAS FDM
-// =============================================================================
-EPS = 0.01; // Overlap mínimo para uniões booleanas (evita coplanaridade)
+// Folgas por lado. Confirme com 99_Teste_Tolerancias.scad antes das pecas longas.
+slide_clearance_xy = 0.22;
+slide_clearance_z  = 0.15;
+passive_float      = 0.60; // +/-0,60 mm transversal; 1,20 mm total
+pressfit_clearance = 0.15;
+shaft_clearance    = 0.10;
 
-slide_clearance_xy = 0.25; // Folga por lado nos eixos X/Y (validar no cupom 99)
-slide_clearance_z  = 0.20; // Folga por lado no carro Z retangular
-pressfit_clearance = 0.15; // Folga para prensagem justa (mm)
-shaft_clearance    = 0.10; // Folga do eixo D do motor (mm)
+wall_thin       = 1.80;
+wall_structural = 2.40;
+wall_screw      = 4.50;
 
-wall_thin       = 2.4; // Parede fina comum (mm)
-wall_structural = 2.8; // Parede estrutural (mm)
-wall_screw      = 4.5; // Boss ao redor de parafusos M3 (mm)
-
-// =============================================================================
-// 2. MOTOR 28BYJ-48 5V DC
-// =============================================================================
+// Motor 28BYJ-48
 motor_body_diameter  = 28.2;
 motor_mount_spacing  = 35.0;
-motor_shaft_diameter = 5.0;  // Diâmetro nominal do eixo (mm)
-motor_shaft_flat     = 3.0;  // Dimensão total do corte D (mm)
+motor_shaft_diameter = 5.0;
+motor_shaft_flat     = 3.0;
 motor_shaft_length   = 9.0;
+motor_body_r         = motor_body_diameter / 2;
+motor_body_h         = 19.0;
+motor_flange_dist    = motor_mount_spacing;
+motor_flange_hole_r  = 1.6;
+motor_boss_r         = 4.6;
+motor_boss_h         = 1.5;
+motor_shaft_r        = motor_shaft_diameter / 2;
 
-motor_body_r        = motor_body_diameter / 2;
-motor_body_h        = 19.0;
-motor_flange_dist   = motor_mount_spacing;
-motor_flange_hole_r = 1.6;
-motor_boss_r        = 4.6;
-motor_boss_h        = 1.5;
-motor_shaft_r       = motor_shaft_diameter / 2; // 2.50mm
+// Estrutura fixa X. Os centros dos trilhos ficam em Y=0 e Y=x_rail_spacing.
+x_rail_length     = 220.0;
+x_rail_spacing    = 240.0;
+base_w            = 26.0;
+base_h            = 10.0;
+floor_h           = 2.4;
+x_rack_center_y   = 2.8; // lado externo; pinhao livre da guia central
+x_carriage_length = 56.0;
+x_carriage_h      = 12.0;
+passive_shoe_h    = 8.0;
+passive_saddle_h  = x_carriage_h - passive_shoe_h;
+passive_boss_w    = 18.0;
+passive_boss_d    = 8.0;
+passive_boss_h    = 3.0;
 
-// =============================================================================
-// 3. DIMENSÕES DA MÁQUINA
-// =============================================================================
-x_rail_length = 200.0;
-y_rail_length = 196.0;
-y_rail_width  = 28.0; // lado +X ampliado para separar rack e dovetail
-y_dovetail_center_x = 12.0;
-y_rack_center_x = 23.0;
-base_w        = 30.0;  // Largura da base X no eixo Y
-base_h        = 10.0;  // Altura estrutural da base X
-floor_h       = 3.0;   // Espessura do piso da base X
-x_rack_center_y = 5.0; // Rack X na face frontal; libera o corpo do motor do trilho Y
-x_motor_face_y_local = -1.5; // face alem do carrinho; libera a parede frontal da base
+// Viga Y: tubo fechado com diafragmas.
+y_rail_length         = x_rail_spacing;
+y_beam_w              = 30.0;
+y_beam_h              = 24.0;
+y_beam_wall           = 1.80;
+y_beam_rib_pitch      = 40.0;
+y_beam_rib_t          = 1.80;
+y_dovetail_center_x   = -5.5;
+y_rack_center_x       = 10.0;
+beam_key_w            = 20.0;
+beam_key_d            = 16.0;
+beam_key_h            = 4.0;
+beam_key_inset        = y_beam_wall;
+beam_socket_clearance = 0.20;
+beam_mount_hole_r     = 1.65; // M3
 
-// =============================================================================
-// 4. ENGRENAGENS: CREMALHEIRA E PINHÃO
-// =============================================================================
+// Cremalheira e pinhao impressos
 rack_pitch        = 4.0;
 gear_teeth        = 10;
-gear_pitch_radius = (gear_teeth * rack_pitch) / (2 * PI); // ≈6.366mm
+gear_pitch_radius = (gear_teeth * rack_pitch) / (2 * PI);
+gear_module        = rack_pitch / PI;
+gear_pressure_angle = 30.0;
+gear_addendum      = 0.80 * gear_module;
+gear_dedendum      = 1.00 * gear_module;
+tooth_height       = gear_addendum + gear_dedendum;
+rack_pitch_height  = gear_dedendum;
+rack_tooth_base_hw = rack_pitch/4
+                     + gear_dedendum*tan(gear_pressure_angle);
+rack_tooth_tip_hw  = rack_pitch/4
+                     - gear_addendum*tan(gear_pressure_angle);
+gear_root_radius   = gear_pitch_radius - gear_dedendum;
+gear_tip_radius    = gear_pitch_radius + gear_addendum;
+gear_outer_radius  = gear_tip_radius;
+gear_backlash      = 0.20;
+gear_mesh_clearance = 0.15;
+rack_width         = 4.0;
+pinion_thickness   = 7.0;
+pinion_tooth_width_pitch = rack_pitch / 2 - gear_backlash;
+pinion_phase_x     = 18.0;
+pinion_phase_y     = 0.0;
+pinion_phase_z     = 18.0;
+pinion_phase_deg   = pinion_phase_x;
 
-tooth_height = 2.2;  // Altura do dente da cremalheira (mm)
-// Larguras do dente da cremalheira (perfil trapezoidal canônico):
-rack_tooth_base_hw = rack_pitch / 3;   // meia-largura na base = 1.333mm
-rack_tooth_tip_hw  = rack_pitch / 6;   // meia-largura na ponta = 0.667mm
-
-// Pinhão: addendum/dedendum derivados de tooth_height
-gear_addendum     = tooth_height * 0.55;  // Acima do pitch circle
-gear_dedendum     = tooth_height * 0.55;  // Abaixo do pitch circle
-gear_root_radius  = gear_pitch_radius - gear_dedendum;  // ≈5.16mm
-gear_tip_radius   = gear_pitch_radius + gear_addendum;  // ≈7.58mm
-gear_outer_radius = gear_tip_radius; // Raio externo REAL do STL
-
-gear_backlash   = 0.20;
-gear_mesh_clearance = 0.40; // afasta a ponta do pinhao da plataforma do rack
-rack_width      = 4.0;  // Largura transversal padrão da cremalheira
-pinion_thickness = 7.0;
-
-// Largura tangencial dos dentes do pinhão (no pitch circle ≈ pitch/2 - backlash)
-pinion_tooth_width_pitch = rack_pitch / 2 - gear_backlash; // 1.80mm
-
-// =============================================================================
-// 5. GUIAS RABO DE ANDORINHA
-// =============================================================================
+// Guia rabo de andorinha
 dovetail_height       = 4.5;
-dovetail_width_bottom = 9.5;   // Pescoço (base estreita)
-dovetail_width_top    = 13.0;  // Topo (aba larga)
+dovetail_width_bottom = 9.5;
+dovetail_width_top    = 13.0;
 
-// =============================================================================
-// 6. EIXO Z
-// =============================================================================
-active_z_travel   = 6.0;
-compliance_travel = 3.0;
-pen_diameter      = 10.0;
-pen_clearance     = 0.25;
-// A mola envolve a caneta; portanto seu DI deve ser maior que pen_diameter.
+// Carrinho Y e Z
+y_carriage_w      = 44.0;
+y_carriage_length = 48.0;
+y_carriage_h      = 14.0;
+z_guide_total_h   = 22.0;
+z_axis_center_x_local = 10.0;
+z_axis_center_y_local = 10.0;
+
+z_motor_travel       = 8.0;
+pen_lift_clearance   = 6.0;
+nominal_compression  = 2.0;
+compliance_travel    = 3.0;
+pen_diameter         = 10.0;
+pen_clearance        = 0.25;
 spring_inner_diameter = 10.8;
 spring_outer_diameter = 13.0;
 spring_length         = 14.0;
-spring_rate_target    = 0.20; // N/mm; alvo para 0.2 N de pre-carga e 0.8 N no fim
-spring_preload        = 1.0;  // compressao inicial em mm
+spring_rate_target    = 0.20;
+spring_preload        = 1.0;
 
-// Carro Z anti-rotacao e coordenadas compartilhadas com carrinho/montagem.
-z_carriage_w       = 13.0;
-z_carriage_d       = 13.0;
-z_carriage_body_h  = 22.0;
-z_axis_center_x    = 8.5;
-z_axis_center_y    = 10.0; // separa gaiola Z do suporte frontal do motor
-z_collar_od        = 13.0;
-z_collar_h         = 4.0;
-z_cage_w           = 20.4;
-z_cage_d           = 13.0;
-// 3.8 mm deixa 0.1 mm de sobreposicao com o corpo de 13 mm em cada lado;
-// evita montantes apenas suspensos pela ponte superior no STL.
-z_post_w           = 3.8;
-z_cap_h            = 3.0;
-z_cap_bottom       = z_carriage_body_h + z_collar_h + spring_length - spring_preload;
-z_rack_start       = 17.0;
-z_rack_length      = active_z_travel + 8.0;
-// A base entra 0.2 mm no montante: une a cremalheira ao êmbolo sem levar
-// os dentes para dentro da gaiola. A folga extra mantém o pinhão afastado.
-z_rack_base_x      = z_cage_w/2 - 0.20;
-z_mesh_clearance   = 0.80;
-z_motor_axis_x     = z_axis_center_x + z_rack_base_x + tooth_height/2
-                     + gear_pitch_radius + z_mesh_clearance;
-z_motor_axis_z     = tooth_height/2 + gear_pitch_radius + 15.5; // separa os pinhoes Y/Z
+z_carriage_w      = 13.0;
+z_carriage_d      = 13.0;
+z_carriage_body_h = 22.0;
+z_collar_od       = 13.0;
+z_collar_h        = 4.0;
+z_cage_w          = 20.4;
+z_cage_d          = 13.0;
+z_post_w          = 3.8;
+z_cap_h           = 3.0;
+z_cap_bottom      = z_carriage_body_h + z_collar_h
+                    + spring_length - spring_preload;
+z_rack_start      = 2.0;
+z_rack_length     = z_motor_travel + 16.0;
+z_rack_base_x     = z_cage_w/2 - 0.20;
+z_mesh_clearance  = gear_mesh_clearance;
+z_pinion_offset_x = z_rack_base_x + rack_pitch_height
+                    + gear_pitch_radius + z_mesh_clearance;
+z_motor_axis_x_local = z_axis_center_x_local + z_pinion_offset_x;
+z_motor_axis_z_local = 20.5;
 
-// Chaveta estrutural entre o carrinho X e o trilho Y.
-y_mount_tongue_w = 18.0;
-y_mount_tongue_d = 14.0;
-y_mount_tongue_h = 6.0; // profundidade no carrinho X
-y_mount_upper_socket_h = 5.0;
-y_mount_key_h = y_mount_tongue_h + y_mount_upper_socket_h - 0.2;
-y_mount_boss_h = 8.0;
-y_mount_offset_y = 0.8; // separa a chaveta do pinhao X
-y_mount_screw_x = [5.0, 19.0]; // coordenadas locais no trilho Y
-y_mount_screw_y = 15.0;
+// Planos globais da montagem
+paper_width       = 148.0;
+paper_height      = 210.0;
+paper_z           = 0.0;
+paper_thickness   = 0.30;
+paper_origin_x    = 36.0;
+paper_origin_y    = 15.0;
+y_beam_bottom_z   = base_h + x_carriage_h;
+y_beam_top_z      = y_beam_bottom_z + y_beam_h;
+z_plunger_down_z  = y_beam_top_z + 0.50;
+pen_tip_uncompressed_z = paper_z + paper_thickness
+                         - z_plunger_down_z - nominal_compression;
 
-// =============================================================================
-// 7. ÁREA DE TRABALHO
-// =============================================================================
-paper_width  = 148.0;
-paper_height = 210.0;
-paper_z      = 0.0;
-
-X_MIN = 4.0;
-X_MAX = 168.0;
-Y_MIN = 0.0;
-Y_MAX = 138.0;
-Z_UP   = active_z_travel;
+// Curso conservador: cobre 148 x 180 mm dentro de uma folha A5.
+X_MIN = paper_origin_x;
+X_MAX = paper_origin_x + paper_width;
+Y_MIN = paper_origin_y + 15.0;
+Y_MAX = paper_origin_y + paper_height - 15.0;
 Z_DOWN = 0.0;
+Z_UP   = z_motor_travel;
 
-// 52mm separam o pinhao Y da gaiola Z e ainda deixam 6mm no trilho em Y_MAX.
-y_carriage_length = 52.0;
+SHOW_DEBUG       = false;
+SHOW_MOTORS      = true;
+SHOW_WORK_AREA   = false;
+EXPLODED_VIEW    = 0.0;
 
-// =============================================================================
-// 8. OPÇÕES DE VISUALIZAÇÃO
-// =============================================================================
-SHOW_DEBUG            = false;
-SHOW_MOTORS           = true;
-SHOW_PITCH_LINES      = false;
-SHOW_WORK_AREA        = false;
-SHOW_CLEARANCE        = false;
-SHOW_LEGACY_REFERENCE = false;
-EXPLODED_VIEW         = 0.0;
+// Uma volta corresponde a gear_teeth*rack_pitch (40 mm para 10T x 4 mm).
+function pinion_angle(linear_position, direction=-1,
+                      phase=pinion_phase_deg) =
+  phase + direction * linear_position * 360
+          / (gear_teeth*rack_pitch);
 
-// #############################################################################
-//                    MÓDULOS GEOMÉTRICOS COMPARTILHADOS
-// #############################################################################
-
-// =============================================================================
-// DOVETAIL MACHO/FÊMEA (ORIENTAÇÃO INEQUÍVOCA POR EIXO, min Z = 0)
-// =============================================================================
-
-module dovetail_male_x(length, height=dovetail_height, neck=dovetail_width_bottom, top=dovetail_width_top) {
-  // Guia macho ao longo de X. Z de 0 a height.
-  rotate([90, 0, 90])
-    linear_extrude(height=length)
-      polygon(points=[
-        [-neck/2, 0],
-        [-top/2,  height],
-        [ top/2,  height],
-        [ neck/2, 0]
-      ]);
+module dovetail_male_x(length, height=dovetail_height,
+                       neck=dovetail_width_bottom, top=dovetail_width_top) {
+  rotate([90,0,90]) linear_extrude(height=length)
+    polygon(points=[[-neck/2,0],[-top/2,height],
+                    [ top/2,height],[ neck/2,0]]);
 }
 
-module dovetail_female_x(length, height=dovetail_height, neck=dovetail_width_bottom, top=dovetail_width_top, clearance=slide_clearance_xy) {
-  c_neck = neck + clearance * 2;
-  c_top  = top  + clearance * 2;
+module dovetail_female_x(length, height=dovetail_height,
+                         neck=dovetail_width_bottom, top=dovetail_width_top,
+                         clearance=slide_clearance_xy) {
+  c_neck = neck + 2*clearance;
+  c_top  = top  + 2*clearance;
   c_h    = height + clearance;
-
-  rotate([90, 0, 90])
-    translate([0, 0, -EPS])
-      linear_extrude(height=length + EPS * 2)
-        polygon(points=[
-          [-c_neck/2, -clearance],
-          [-c_top/2,  c_h],
-          [ c_top/2,  c_h],
-          [ c_neck/2, -clearance]
-        ]);
+  rotate([90,0,90]) translate([0,0,-EPS])
+    linear_extrude(height=length+2*EPS)
+      polygon(points=[[-c_neck/2,-clearance],[-c_top/2,c_h],
+                      [ c_top/2,c_h],[ c_neck/2,-clearance]]);
 }
 
-module dovetail_male_y(length, height=dovetail_height, neck=dovetail_width_bottom, top=dovetail_width_top) {
-  // Guia macho ao longo de Y. Z de 0 a height.
-  translate([0, length, 0])
-    rotate([90, 0, 0])
-      linear_extrude(height=length)
-        polygon(points=[
-          [-neck/2, 0],
-          [-top/2,  height],
-          [ top/2,  height],
-          [ neck/2, 0]
-        ]);
+module dovetail_male_y(length, height=dovetail_height,
+                       neck=dovetail_width_bottom, top=dovetail_width_top) {
+  translate([0,length,0]) rotate([90,0,0]) linear_extrude(height=length)
+    polygon(points=[[-neck/2,0],[-top/2,height],
+                    [ top/2,height],[ neck/2,0]]);
 }
 
-module dovetail_female_y(length, height=dovetail_height, neck=dovetail_width_bottom, top=dovetail_width_top, clearance=slide_clearance_xy) {
-  c_neck = neck + clearance * 2;
-  c_top  = top  + clearance * 2;
+module dovetail_female_y(length, height=dovetail_height,
+                         neck=dovetail_width_bottom, top=dovetail_width_top,
+                         clearance=slide_clearance_xy) {
+  c_neck = neck + 2*clearance;
+  c_top  = top  + 2*clearance;
   c_h    = height + clearance;
-
-  translate([0, length + EPS, 0])
-    rotate([90, 0, 0])
-      linear_extrude(height=length + EPS * 2)
-        polygon(points=[
-          [-c_neck/2, -clearance],
-          [-c_top/2,  c_h],
-          [ c_top/2,  c_h],
-          [ c_neck/2, -clearance]
-        ]);
+  translate([0,length+EPS,0]) rotate([90,0,0])
+    linear_extrude(height=length+2*EPS)
+      polygon(points=[[-c_neck/2,-clearance],[-c_top/2,c_h],
+                      [ c_top/2,c_h],[ c_neck/2,-clearance]]);
 }
-
-// =============================================================================
-// CREMALHEIRAS CANÔNICAS (com base de união contínua de 0.6mm para 100% de solidez)
-// =============================================================================
 
 module rack_x(length, pitch=rack_pitch, height=tooth_height, width=rack_width) {
-  // Cremalheira ao longo de X. Base contínua em Z=[-0.6, 0] para interpenetração sólida.
-  num_teeth = floor(length / pitch);
+  n = floor(length/pitch);
   union() {
-    translate([0, -width/2, -0.6])
-      cube([length, width, 0.6 + EPS]);
-    
-    for (i = [0 : num_teeth - 1]) {
-      translate([(i + 0.5) * pitch, 0, 0])
-        hull() {
-          cube([2 * rack_tooth_base_hw, width, EPS], center=true);
-          translate([0, 0, height])
-            cube([2 * rack_tooth_tip_hw, width, EPS], center=true);
-        }
+    translate([0,-width/2,-0.6]) cube([length,width,0.6+EPS]);
+    for (i=[0:n-1]) translate([(i+0.5)*pitch,0,0]) hull() {
+      cube([2*rack_tooth_base_hw,width,EPS],center=true);
+      translate([0,0,height]) cube([2*rack_tooth_tip_hw,width,EPS],center=true);
     }
   }
 }
 
 module rack_y(length, pitch=rack_pitch, height=tooth_height, width=rack_width) {
-  // Cremalheira ao longo de Y. Base contínua em Z=[-0.6, 0] para interpenetração sólida.
-  num_teeth = floor(length / pitch);
+  n = floor(length/pitch);
   union() {
-    translate([-width/2, 0, -0.6])
-      cube([width, length, 0.6 + EPS]);
-
-    for (i = [0 : num_teeth - 1]) {
-      translate([0, (i + 0.5) * pitch, 0])
-        hull() {
-          cube([width, 2 * rack_tooth_base_hw, EPS], center=true);
-          translate([0, 0, height])
-            cube([width, 2 * rack_tooth_tip_hw, EPS], center=true);
-        }
+    translate([-width/2,0,-0.6]) cube([width,length,0.6+EPS]);
+    for (i=[0:n-1]) translate([0,(i+0.5)*pitch,0]) hull() {
+      cube([width,2*rack_tooth_base_hw,EPS],center=true);
+      translate([0,0,height]) cube([width,2*rack_tooth_tip_hw,EPS],center=true);
     }
   }
 }
 
 module rack_z(length, pitch=rack_pitch, height=tooth_height, width=rack_width) {
-  // Cremalheira ao longo de Z. Base contínua em X=[-0.6, 0] para interpenetração sólida no êmbolo.
-  num_teeth = floor(length / pitch);
+  n = floor(length/pitch);
   union() {
-    translate([-0.6, -width/2, 0])
-      cube([0.6 + EPS, width, length]);
-
-    for (i = [0 : num_teeth - 1]) {
-      translate([0, 0, (i + 0.5) * pitch])
-        hull() {
-          cube([EPS, width, 2 * rack_tooth_base_hw], center=true);
-          translate([height, 0, 0])
-            cube([EPS, width, 2 * rack_tooth_tip_hw], center=true);
-        }
+    translate([-0.6,-width/2,0]) cube([0.6+EPS,width,length]);
+    for (i=[0:n-1]) translate([0,0,(i+0.5)*pitch]) hull() {
+      cube([EPS,width,2*rack_tooth_base_hw],center=true);
+      translate([height,0,0]) cube([EPS,width,2*rack_tooth_tip_hw],center=true);
     }
   }
 }
 
-// =============================================================================
-// PINHÃO
-// =============================================================================
-
-module pinion_gear(teeth=gear_teeth, pitch=rack_pitch, thickness=pinion_thickness) {
-  r_pitch = (teeth * pitch) / (2 * PI);
+module pinion_profile_solid(teeth=gear_teeth, pitch=rack_pitch) {
+  r_pitch = teeth*pitch/(2*PI);
   r_root  = r_pitch - gear_dedendum;
   r_tip   = r_pitch + gear_addendum;
-  tooth_root_r = r_root - 0.25; // overlap radial evita uniao apenas coplanar
+  r_base  = r_pitch*cos(gear_pressure_angle);
+  inv_pitch = tan(gear_pressure_angle)*180/PI-gear_pressure_angle;
+  half_pitch_angle = pinion_tooth_width_pitch/(2*r_pitch)*180/PI;
+  flank_offset = half_pitch_angle+inv_pitch;
+  steps = 7;
 
-  tw_root = pinion_tooth_width_pitch * 1.35;
-  tw_tip  = pinion_tooth_width_pitch * 0.65;
+  function involute_angle(r) =
+    let(t=sqrt((r/r_base)*(r/r_base)-1)) t*180/PI-atan(t);
+  function flank_angle(r) = flank_offset-involute_angle(r);
 
-  difference() {
-    union() {
-      cylinder(r=r_root, h=thickness);
-      for (i = [0 : teeth - 1]) {
-        rotate([0, 0, i * (360 / teeth)])
-          linear_extrude(height=thickness)
-            polygon(points=[
-              [tooth_root_r,  -tw_root/2],
-              [r_tip,   -tw_tip/2],
-              [r_tip,    tw_tip/2],
-              [tooth_root_r,   tw_root/2]
-            ]);
-      }
-    }
-    translate([0, 0, -EPS])
-      d_shaft_hole(h=thickness + EPS * 2);
+  lower_flank = [for (j=[0:steps])
+    let(r=r_base+(r_tip-r_base)*j/steps,a=-flank_angle(r))
+      [r*cos(a),r*sin(a)]];
+  upper_flank = [for (j=[steps:-1:0])
+    let(r=r_base+(r_tip-r_base)*j/steps,a=flank_angle(r))
+      [r*cos(a),r*sin(a)]];
+  tip_a = flank_angle(r_tip);
+  tip_arc = [for (j=[1:3])
+    let(a=-tip_a+2*tip_a*j/4) [r_tip*cos(a),r_tip*sin(a)]];
+  tooth_polygon = concat(
+    [[r_root*cos(-flank_offset),r_root*sin(-flank_offset)]],
+    lower_flank,tip_arc,upper_flank,
+    [[r_root*cos(flank_offset),r_root*sin(flank_offset)]]
+  );
+
+  union() {
+    circle(r=r_root);
+    for (i=[0:teeth-1]) rotate(i*360/teeth)
+      polygon(points=tooth_polygon);
   }
 }
 
-// =============================================================================
-// EIXO D UNIFICADO
-// =============================================================================
+module rack_profile_linear(length, pitch=rack_pitch) {
+  n = floor(length/pitch);
+  union() {
+    translate([0,-0.6]) square([length,0.6+EPS]);
+    for (i=[0:n-1])
+      translate([(i+0.5)*pitch,0])
+        polygon(points=[[-rack_tooth_base_hw,0],
+                        [-rack_tooth_tip_hw,tooth_height],
+                        [ rack_tooth_tip_hw,tooth_height],
+                        [ rack_tooth_base_hw,0]]);
+  }
+}
 
-module d_shaft_solid(h=10.0) {
+module pinion_gear(teeth=gear_teeth, pitch=rack_pitch,
+                   thickness=pinion_thickness) {
+  difference() {
+    linear_extrude(height=thickness)
+      pinion_profile_solid(teeth,pitch);
+    translate([0,0,-EPS]) d_shaft_hole(h=thickness+2*EPS);
+  }
+}
+
+module d_shaft_solid(h=10) {
   flat_dist = motor_shaft_flat - motor_shaft_r;
   difference() {
-    cylinder(r=motor_shaft_r, h=h);
-    translate([flat_dist, -(motor_shaft_r + 1), -EPS])
-      cube([(motor_shaft_r + 1) * 2, (motor_shaft_r + 1) * 2, h + EPS * 2]);
+    cylinder(r=motor_shaft_r,h=h);
+    translate([flat_dist,-motor_shaft_r-1,-EPS])
+      cube([(motor_shaft_r+1)*2,(motor_shaft_r+1)*2,h+2*EPS]);
   }
 }
 
-module d_shaft_hole(h=10.0, clearance=shaft_clearance) {
+module d_shaft_hole(h=10, clearance=shaft_clearance) {
   r_c = motor_shaft_r + clearance;
-  flat_dist_c = (motor_shaft_flat - motor_shaft_r) + clearance;
+  flat_dist_c = motor_shaft_flat - motor_shaft_r + clearance;
   difference() {
-    cylinder(r=r_c, h=h);
-    translate([flat_dist_c, -(r_c + 1), -EPS])
-      cube([(r_c + 1) * 2, (r_c + 1) * 2, h + EPS * 2]);
+    cylinder(r=r_c,h=h);
+    translate([flat_dist_c,-r_c-1,-EPS])
+      cube([(r_c+1)*2,(r_c+1)*2,h+2*EPS]);
   }
 }
 
-// =============================================================================
-// LEGADO: aliases para compatibilidade
-// =============================================================================
-module dovetail_male(length, height=dovetail_height, neck=dovetail_width_bottom, top=dovetail_width_top) {
-  dovetail_male_x(length, height, neck, top);
-}
-module dovetail_female(length, height=dovetail_height, neck=dovetail_width_bottom, top=dovetail_width_top, clearance=slide_clearance_xy) {
-  dovetail_female_x(length, height, neck, top, clearance);
-}
-module motor_d_shaft_hole(h=10.0, clearance=shaft_clearance) {
-  d_shaft_hole(h, clearance);
-}
+// Compatibilidade com arquivos auxiliares antigos.
+active_z_travel = z_motor_travel;
+z_axis_center_x = z_axis_center_x_local;
+z_axis_center_y = z_axis_center_y_local;
+z_motor_axis_x  = z_motor_axis_x_local;
+z_motor_axis_z  = z_motor_axis_z_local;
+module dovetail_male(length,height=dovetail_height,
+                     neck=dovetail_width_bottom,top=dovetail_width_top)
+  dovetail_male_x(length,height,neck,top);
+module dovetail_female(length,height=dovetail_height,
+                       neck=dovetail_width_bottom,top=dovetail_width_top,
+                       clearance=slide_clearance_xy)
+  dovetail_female_x(length,height,neck,top,clearance);
+module motor_d_shaft_hole(h=10,clearance=shaft_clearance)
+  d_shaft_hole(h,clearance);

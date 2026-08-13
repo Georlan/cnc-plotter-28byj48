@@ -1,120 +1,110 @@
+/*
+  Teste CSG das interfaces imprimiveis.
+  Resultado correto: somente o cubo marcador de 1 mm em [1000,1000,0].
+*/
+
 include <00_Parametros.scad>;
 use <01_Base_Trilho_X.scad>;
 use <02_Carrinho_X.scad>;
 use <03_Trilho_Y.scad>;
 use <04_Carrinho_Y.scad>;
 use <05_Modulo_Z_Caneta.scad>;
-use <06_Pinhoes.scad>;
-
-// Resultado correto: somente um cubo. Qualquer outro solido e colisao.
-
-cx_y_offset = base_w/2 - 28/2;
-ty_y_origin = cx_y_offset + 28/2 - y_mount_tongue_d/2 + y_mount_offset_y;
-ty_z_offset = base_h + 12;
-cy_x_offset = y_dovetail_center_x - 32/2;
-
-motor_x_z = base_h + tooth_height/2 + gear_pitch_radius + gear_mesh_clearance;
-motor_y_z = 10 + tooth_height/2 + gear_pitch_radius + gear_mesh_clearance;
-pinion_z_x = cy_x_offset + z_motor_axis_x;
-pinion_z_z = 10 + z_motor_axis_z;
-
-// Guardas dimensionais: falham na compilacao se um parametro reintroduzir
-// as sobreposicoes vistas na montagem animada.
-assert(motor_x_z - gear_tip_radius > base_h + 0.2,
-       "Pinhao X atravessa a plataforma da cremalheira");
-assert(motor_y_z - gear_tip_radius > 10 + 0.2,
-       "Pinhao Y atravessa a plataforma da cremalheira");
-assert((z_motor_axis_x - z_axis_center_x) - gear_tip_radius
-       > z_cage_w/2 + 0.2,
-       "Pinhao Z atravessa o montante da gaiola");
-assert(y_carriage_length >= motor_flange_dist + 2*wall_screw,
-       "Carrinho Y curto para a flange real do 28BYJ-48");
-
-module carriage_x_world(px, dz=0) {
-  translate([px, cx_y_offset, base_h + dz]) carrinho_x();
-}
-
-module rail_y_world(px, include_rack=true) {
-  translate([px + 2, ty_y_origin, ty_z_offset])
-    trilho_y(include_rack=include_rack);
-}
-
-module mount_key_world(px) {
-  translate([px + 2, ty_y_origin, ty_z_offset])
-    translate([12, y_mount_tongue_d/2, -y_mount_tongue_h + 0.1])
-      y_mount_key();
-}
-
-module pinion_x_world(px) {
-  translate([px + 14, x_rack_center_y - pinion_thickness/2, motor_x_z])
-    rotate([-90, 0, 0]) pinion_gear();
-}
-
-module carriage_y_local(py, dz=0) {
-  translate([cy_x_offset, py, 10 + dz]) carrinho_y();
-}
-
-module pinion_y_local(py) {
-  translate([y_rack_center_x - pinion_thickness/2,
-             py + y_carriage_length/2, motor_y_z])
-    rotate([0, 90, 0]) pinion_gear();
-}
-
-module plunger_local(py, pz, include_rack=true) {
-  translate([cy_x_offset + z_axis_center_x, py + z_axis_center_y, 8 + pz])
-    modulo_z_pen_plunger(include_rack=include_rack);
-}
-
-module pinion_z_local(py) {
-  translate([pinion_z_x, py + z_axis_center_y + pinion_thickness/2, pinion_z_z])
-    rotate([90, 0, 0]) pinion_gear();
-}
 
 module run_collision_tests() {
-translate([1800, 1000, 0]) cube([1, 1, 1]);
+translate([10000,1000,0]) cube([1,1,1]);
 
-for (px = [X_MIN, (X_MIN + X_MAX)/2, X_MAX]) {
-  // Guias deslizantes devem ter folga, nunca intersecao solida.
-  translate([0, 0, 0])
-    intersection() { base_trilho_x(); carriage_x_world(px, 0.02); }
+front_y=-base_w/2;
+rear_y=x_rail_spacing-base_w/2;
 
-  // Pinhao X contra estrutura, carrinho e conjunto do trilho Y.
-  translate([300, 0, 0])
-    intersection() { base_trilho_x(include_rack=false); pinion_x_world(px); }
-  translate([600, 0, 0])
-    intersection() { carriage_x_world(px); pinion_x_world(px); }
-  translate([900, 0, 0])
-    intersection() { rail_y_world(px); pinion_x_world(px); }
-  translate([1200, 0, 0])
-    intersection() { mount_key_world(px); pinion_x_world(px); }
+module driven(px,dz=-0.02)
+  translate([px-x_carriage_length/2,front_y,base_h+dz])
+    carrinho_x_motriz();
+module shoe(px,rail_error=0,dz=-0.02)
+  translate([px-x_carriage_length/2,rear_y+rail_error,base_h+dz])
+    sapata_x_passiva();
+module saddle(px,dz=-0.02)
+  translate([px-x_carriage_length/2,rear_y,
+             base_h+passive_shoe_h+dz])
+    sela_x_passiva();
+module beam(px,with_rack=true)
+  translate([px,0,y_beam_bottom_z]) trilho_y(include_rack=with_rack);
+module cy(px,py)
+  translate([px+y_dovetail_center_x-y_carriage_w/2,
+             py-z_axis_center_y_local,y_beam_top_z+0.02]) carrinho_y();
+module plunger(px,py,pz,with_rack=true)
+  translate([px+y_dovetail_center_x-y_carriage_w/2+z_axis_center_x_local,
+             py,z_plunger_down_z+pz])
+    modulo_z_pen_plunger(include_rack=with_rack);
 
-  for (py = [Y_MIN, (Y_MIN + Y_MAX)/2, Y_MAX])
-    translate([px + 2, ty_y_origin, ty_z_offset]) {
-      translate([0, 300, 0])
-        intersection() { trilho_y(); carriage_y_local(py, 0.02); }
-      translate([300, 300, 0])
-        intersection() { trilho_y(include_rack=false); pinion_y_local(py); }
-      translate([600, 300, 0])
-        intersection() { carriage_y_local(py); pinion_y_local(py); }
+module pinion_x(px) {
+  z=base_h+rack_pitch_height+gear_pitch_radius+gear_mesh_clearance;
+  translate([px,front_y+x_rack_center_y-pinion_thickness/2,z])
+    rotate([-90,0,0])
+      rotate([0,0,pinion_angle(px,+1,pinion_phase_x)]) pinion_gear();
+}
+module pinion_y(px,py) {
+  yy=py-z_axis_center_y_local+y_carriage_length/2;
+  z=y_beam_top_z+rack_pitch_height+gear_pitch_radius+gear_mesh_clearance;
+  translate([px+y_rack_center_x-pinion_thickness/2,yy,z])
+    rotate([0,90,0])
+      rotate([0,0,pinion_angle(yy,-1,pinion_phase_y)]) pinion_gear();
+}
+module pinion_z(px,py,pz) {
+  cx=px+y_dovetail_center_x-y_carriage_w/2;
+  translate([cx+z_motor_axis_x_local,py-pinion_thickness/2,
+             y_beam_top_z+z_motor_axis_z_local])
+    rotate([-90,0,0])
+      rotate([0,0,pinion_angle(pz,+1,pinion_phase_z)]) pinion_gear();
+}
 
-      for (pz = [Z_DOWN, Z_UP]) {
-        translate([0, 600, 0])
-          intersection() { carriage_y_local(py); plunger_local(py, pz); }
-        translate([300, 600, 0])
-          intersection() { pinion_y_local(py); plunger_local(py, pz); }
-        translate([600, 600, 0])
-          intersection() {
-            pinion_z_local(py);
-            plunger_local(py, pz, include_rack=false);
-          }
-        translate([900, 600, 0])
-          intersection() { pinion_z_local(py); carriage_y_local(py); }
-        translate([1200, 600, 0])
-          intersection() { pinion_z_local(py); trilho_y(include_rack=false); }
+// As secoes sao invariantes ao longo do curso; extremos ficam guardados por
+// assertions e pelo arquivo 96. Testar o centro reduz muito o tempo CSG.
+px=(X_MIN+X_MAX)/2;
+py=(Y_MIN+Y_MAX)/2;
+assert(X_MIN-x_carriage_length/2 >= 0);
+assert(X_MAX+x_carriage_length/2 <= x_rail_length);
+assert(Y_MIN-z_axis_center_y_local >= 0);
+assert(Y_MAX-z_axis_center_y_local+y_carriage_length <= y_rail_length+8);
+
+translate([0,0,0]) intersection() {
+  translate([0,front_y,0]) trilho_x_motriz();
+  driven(px);
+}
+translate([400,0,0]) intersection() {
+  translate([0,rear_y,0]) trilho_x_passivo();
+  shoe(px);
+}
+for (err=[-passive_float,0,passive_float])
+  translate([800,0,0]) intersection() {
+    shoe(px,err,-0.02); saddle(px,0.02);
   }
+translate([1200,0,0]) intersection() { beam(px); driven(px); }
+translate([1600,0,0]) intersection() { beam(px); saddle(px); }
+translate([2000,0,0]) intersection() {
+  beam(px); translate([0,front_y,0]) trilho_x_motriz();
 }
+translate([2400,0,0]) intersection() {
+  beam(px); translate([0,rear_y,0]) trilho_x_passivo();
+}
+
+translate([2800,0,0]) intersection() {
+  translate([0,front_y,0]) base_trilho_x(include_rack=false);
+  pinion_x(px);
+}
+translate([3200,0,0]) intersection() { driven(px); pinion_x(px); }
+translate([3600,0,0]) intersection() { beam(px); cy(px,py); }
+translate([4000,0,0]) intersection() { beam(px,false); pinion_y(px,py); }
+translate([4400,0,0]) intersection() { cy(px,py); pinion_y(px,py); }
+
+for (pz=[Z_DOWN,Z_UP]) {
+  translate([4800,0,0]) intersection() { cy(px,py); plunger(px,py,pz); }
+  translate([5200,0,0]) intersection() { cy(px,py); pinion_z(px,py,pz); }
+  translate([5600,0,0]) intersection() {
+    plunger(px,py,pz,false); pinion_z(px,py,pz);
+  }
+  translate([6000,0,0]) intersection() { beam(px,false); pinion_z(px,py,pz); }
 }
 }
 
-// render() descarta residuos coplanares de area/volume zero antes da exportacao.
+// Elimina residuos coplanares de area zero antes da exportacao STL.
 render(convexity=20) run_collision_tests();

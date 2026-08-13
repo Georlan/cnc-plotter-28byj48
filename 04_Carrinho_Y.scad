@@ -1,129 +1,93 @@
 /*
-  =============================================================================
-  04_Carrinho_Y.scad - Carrinho do Eixo Y (GEOMETRIA CORRIGIDA DEFINITIVA)
-  =============================================================================
-  Correções de Engenharia Mecânica:
-    - Motor Y: montado na face direita (+X) com eixo horizontal (-X) acionando Rack Y.
-    - Motor Z: montado na face frontal (-Y) com eixo horizontal (+Y) acionando Rack Z do êmbolo.
-    - SEPARAÇÃO TOTAL MOTOR Y vs MOTOR Z (zero colisão / zero sobreposição).
-    - Canal dovetail_female_y no fundo.
-    - Guia da caneta (Modulo Z) no lado esquerdo.
-    - 1 ÚNICO COMPONENTE CONECTADO no STL.
-  
-  Orientação de impressão: fundo do carrinho no leito (Z=0).
-  =============================================================================
+  Carrinho Y para a viga-caixao.
+
+  O motor Y fica baixo e fora da lateral +X. O motor Z fica na face dianteira;
+  os dois envelopes nao se cruzam. Uma torre de guia eleva o comprimento de
+  apoio do embolo Z de 14 para 24 mm, reduzindo a folga angular da caneta.
 */
 
 include <00_Parametros.scad>;
 
 module carrinho_y() {
-  // Dimensões do corpo principal
-  cy_width   = 32.0;  // X (largura transversal)
-  cy_length  = y_carriage_length; // Y; comporta a flange de 35mm do 28BYJ-48
-  cy_height  = 14.0;  // Z (altura total)
-
-  // Centro do canal dovetail no eixo X
-  dt_local_x = cy_width / 2;  // X=16
-
-  // Motor Y: eixo horizontal em -X (face direita +X)
-  motor_y_z_local = tooth_height/2 + gear_pitch_radius + gear_mesh_clearance;
-  motor_y_x_local = cy_width;
-  hole_y_front     = cy_length/2 - motor_flange_dist/2;   // -3.5
-  hole_y_back      = cy_length/2 + motor_flange_dist/2;    // 31.5
-
-  // Motor Z: coordenadas derivadas dos mesmos parametros usados na montagem.
-  // O eixo foi elevado para os volumes dos pinhoes Y e Z nao se cruzarem.
-  motor_z_x_local = z_motor_axis_x;
-  motor_z_z_local = z_motor_axis_z;
-  hole_z_left     = motor_z_x_local - motor_flange_dist/2;  // -4.0
-  hole_z_right    = motor_z_x_local + motor_flange_dist/2;  // 31.0
-
-  // Guia retangular do carro Z: impede rotacao e deixa a caneta complacente
-  // deslizar dentro do carro, em vez de usar a caneta como guia estrutural.
-  z_slot_w = z_carriage_w + 2 * slide_clearance_z;
-  z_slot_d = z_carriage_d + 2 * slide_clearance_z;
+  dt_local_x = y_carriage_w/2;
+  rack_local_x = dt_local_x + (y_rack_center_x-y_dovetail_center_x);
+  motor_y_axis_z = rack_pitch_height + gear_pitch_radius + gear_mesh_clearance;
+  motor_y_face_x = y_carriage_w;
+  motor_y_center_y = y_carriage_length/2;
+  z_slot_w = z_carriage_w + 2*slide_clearance_z;
+  z_slot_d = z_carriage_d + 2*slide_clearance_z;
+  tower_wall = 2.4;
+  bottom_relief = 0.25;
 
   difference() {
     union() {
-      color([0.35, 0.42, 0.48]) {
-        // ====== CORPO PRINCIPAL ======
-        cube([cy_width, cy_length, cy_height]);
+      cube([y_carriage_w,y_carriage_length,y_carriage_h]);
 
-        // ====== ORELHAS DE MONTAGEM DO MOTOR Y (face +X) ======
-        // As duas orelhas cabem integralmente nos 44mm do carrinho. Evitar
-        // hull ate as extremidades impede que a orelha frontal invada -Y.
-        translate([motor_y_x_local, hole_y_front, motor_y_z_local])
-          rotate([0, -90, 0])
-            cylinder(r=wall_screw, h=3.0);
-        translate([motor_y_x_local, hole_y_back, motor_y_z_local])
-          rotate([0, -90, 0])
-            cylinder(r=wall_screw, h=3.0);
+      // Torre anti-inclinacao do embolo Z.
+      translate([z_axis_center_x_local-z_slot_w/2-tower_wall,
+                 z_axis_center_y_local-z_slot_d/2-tower_wall,0])
+        cube([z_slot_w+2*tower_wall,z_slot_d+2*tower_wall,
+              z_guide_total_h]);
 
-        // ====== ORELHAS DE MONTAGEM DO MOTOR Z (face -Y) ======
-        // Cada placa desce ate o corpo; na versao anterior ambas flutuavam.
+      // Flanges do motor Y, eixo apontando para -X.
+      for (hy=[motor_y_center_y-motor_flange_dist/2,
+               motor_y_center_y+motor_flange_dist/2])
+        translate([motor_y_face_x,hy,motor_y_axis_z])
+          rotate([0,-90,0]) cylinder(r=wall_screw,h=3.2);
+
+      // Flanges do motor Z; a orelha direita se liga ao corpo por um pescoco.
+      for (hx=[z_motor_axis_x_local-motor_flange_dist/2,
+               z_motor_axis_x_local+motor_flange_dist/2])
         hull() {
-          translate([hole_z_left, 0, motor_z_z_local])
-            rotate([-90, 0, 0])
-              cylinder(r=wall_screw, h=3.0);
-          translate([hole_z_left, 0, cy_height - 1.0])
-            rotate([-90, 0, 0])
-              cylinder(r=wall_screw, h=3.0);
+          translate([hx,0,z_motor_axis_z_local])
+            rotate([-90,0,0]) cylinder(r=wall_screw,h=3.2);
+          translate([min(max(hx,wall_screw),y_carriage_w-wall_screw),
+                     0,y_carriage_h-1])
+            rotate([-90,0,0]) cylinder(r=wall_screw,h=3.2);
         }
-        hull() {
-          translate([hole_z_right, 0, motor_z_z_local])
-            rotate([-90, 0, 0])
-              cylinder(r=wall_screw, h=3.0);
-          translate([cy_width - wall_screw/2, 0, cy_height - 1.0])
-            rotate([-90, 0, 0])
-              cylinder(r=wall_screw, h=3.0);
-        }
-      }
     }
 
-    // ====== CANAL DOVETAIL FÊMEA Y (corte no fundo) ======
-    translate([dt_local_x, 0, -0.5])
-      dovetail_female_y(length=cy_length);
+    // Canais rasos: no maximo 10 mm de ponte, sem suporte no fatiador.
+    for (g=[[0,9],[12,8],[23,8],[34,10]])
+      translate([g[0],-EPS,-EPS])
+        cube([g[1],y_carriage_length+2*EPS,bottom_relief+EPS]);
 
-    // ====== FUROS M3 MOTOR Y ======
-    translate([motor_y_x_local + EPS, hole_y_front, motor_y_z_local])
-      rotate([0, -90, 0])
-        cylinder(r=motor_flange_hole_r, h=20);
+    translate([dt_local_x,0,-0.5])
+      dovetail_female_y(y_carriage_length);
 
-    translate([motor_y_x_local + EPS, hole_y_back, motor_y_z_local])
-      rotate([0, -90, 0])
-        cylinder(r=motor_flange_hole_r, h=20);
+    // Canal para a cremalheira Y e bolso do pinhao.
+    translate([rack_local_x-(rack_width+0.8)/2,-EPS,-EPS])
+      cube([rack_width+0.8,y_carriage_length+2*EPS,tooth_height+0.7]);
+    translate([rack_local_x-pinion_thickness/2-0.2,
+               motor_y_center_y,motor_y_axis_z])
+      rotate([0,90,0])
+        cylinder(r=gear_outer_radius+0.35,h=pinion_thickness+0.4);
 
-    // ====== FUROS M3 MOTOR Z ======
-    translate([hole_z_left, -10.0, motor_z_z_local])
-      rotate([-90, 0, 0])
-        cylinder(r=motor_flange_hole_r, h=20);
+    // Guia Z passante e corredor externo da cremalheira vertical.
+    translate([z_axis_center_x_local-z_slot_w/2,
+               z_axis_center_y_local-z_slot_d/2,-EPS])
+      cube([z_slot_w,z_slot_d,z_guide_total_h+2*EPS]);
+    translate([z_axis_center_x_local+z_rack_base_x-0.8,
+               z_axis_center_y_local-(rack_width+0.8)/2,-EPS])
+      cube([tooth_height+1.6,rack_width+0.8,z_guide_total_h+2*EPS]);
 
-    translate([hole_z_right, -10.0, motor_z_z_local])
-      rotate([-90, 0, 0])
-        cylinder(r=motor_flange_hole_r, h=20);
+    // Bolso do pinhao Z.
+    translate([z_motor_axis_x_local,
+               z_axis_center_y_local-pinion_thickness/2-0.2,
+               z_motor_axis_z_local])
+      rotate([-90,0,0])
+        cylinder(r=gear_outer_radius+0.35,h=pinion_thickness+0.4);
 
-    // ====== GUIA PASSANTE DO CARRO Z ======
-    translate([z_axis_center_x - z_slot_w/2,
-               z_axis_center_y - z_slot_d/2, -EPS])
-      cube([z_slot_w, z_slot_d, cy_height + EPS*2]);
+    for (hy=[motor_y_center_y-motor_flange_dist/2,
+             motor_y_center_y+motor_flange_dist/2])
+      translate([motor_y_face_x+EPS,hy,motor_y_axis_z])
+        rotate([0,-90,0]) cylinder(r=motor_flange_hole_r,h=8);
 
-    // ====== BOLSO DO PINHAO Y ======
-    pinion_y_start_x = y_rack_center_x - pinion_thickness/2
-                       - (y_dovetail_center_x - cy_width/2) - 0.2;
-    translate([pinion_y_start_x, cy_length/2, motor_y_z_local])
-      rotate([0, 90, 0])
-        cylinder(r=gear_outer_radius + 0.35, h=pinion_thickness + 0.4);
-
-    // Canal longitudinal da cremalheira Y. O bolso circular acima libera o
-    // pinhao; este rasgo impede que o rack atravesse o fundo do carrinho.
-    rack_y_local_x = y_rack_center_x
-                     - (y_dovetail_center_x - cy_width/2);
-    translate([rack_y_local_x - (rack_width + 0.8)/2,
-               -EPS, -EPS])
-      cube([rack_width + 0.8, cy_length + EPS*2,
-            tooth_height + 0.6 + EPS]);
+    for (hx=[z_motor_axis_x_local-motor_flange_dist/2,
+             z_motor_axis_x_local+motor_flange_dist/2])
+      translate([hx,-EPS,z_motor_axis_z_local])
+        rotate([-90,0,0]) cylinder(r=motor_flange_hole_r,h=8);
   }
 }
 
-// Renderização para impressão/exportação
 carrinho_y();

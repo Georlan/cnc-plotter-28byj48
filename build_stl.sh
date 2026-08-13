@@ -19,20 +19,21 @@ echo "======================================================="
 # Lista de peças 3D com geometria imprimível real
 SCAD_FILES=(
   "01_Base_Trilho_X.scad"
+  "01B_Trilho_X_Passivo.scad"
   "02_Carrinho_X.scad"
+  "02B_Sapata_X_Passiva_PETG.scad"
   "03_Trilho_Y.scad"
   "04_Carrinho_Y.scad"
   "05_Modulo_Z_Caneta.scad"
   "06_Pinhoes.scad"
   "07_Batentes.scad"
   "08_Clips_Fixacao_Papel.scad"
-  "95_Teste_Montagem_Completa.scad"
-  "97_Diagnostico_Motores.scad"
-  "98_Teste_Interferencias.scad"
-  "99_Teste_Tolerancias.scad"
-  "CNC_Plotter_Animated_Simulation.scad"
-  "CNC_Plotter_Full_Assembly.scad"
 )
+
+if ! command -v openscad >/dev/null 2>&1; then
+  echo "Erro: OpenSCAD CLI nao encontrado no PATH."
+  exit 2
+fi
 
 TOTAL=${#SCAD_FILES[@]}
 COUNT=0

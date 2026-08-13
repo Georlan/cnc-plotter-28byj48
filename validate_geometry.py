@@ -20,13 +20,20 @@ CNC_DIR = Path(__file__).resolve().parent
 # expected = -1 indica arquivo de montagem/referência (não-imprimível isoladamente)
 PIECES = [
     ('01_Base_Trilho_X.scad',            '01_Base_Trilho_X.stl',            1),
-    ('02_Carrinho_X.scad',               '02_Carrinho_X.stl',               1),
-    ('03_Trilho_Y.scad',                 '03_Trilho_Y.stl',                 2),
+    ('01B_Trilho_X_Passivo.scad',        '01B_Trilho_X_Passivo.stl',        1),
+    ('02_Carrinho_X.scad',               '02_Carrinho_X.stl',               2),
+    ('02B_Sapata_X_Passiva_PETG.scad',   '02B_Sapata_X_Passiva_PETG.stl',   1),
+    # Uma peca fisica; os seis vazios fechados aparecem como cascas internas
+    # independentes no STL, portanto o contador topologico retorna 7.
+    ('03_Trilho_Y.scad',                 '03_Trilho_Y.stl',                 7),
     ('04_Carrinho_Y.scad',               '04_Carrinho_Y.stl',               1),
     ('05_Modulo_Z_Caneta.scad',          '05_Modulo_Z_Caneta.stl',          2),
     ('06_Pinhoes.scad',                  '06_Pinhoes.stl',                  3),
-    ('07_Batentes.scad',                 '07_Batentes.stl',                 2),
+    ('07_Batentes.scad',                 '07_Batentes.stl',                 6),
     ('08_Clips_Fixacao_Papel.scad',      '08_Clips_Fixacao_Papel.stl',      4),
+    ('92_Teste_Estrutural.scad',         '92_Teste_Estrutural.stl',         1),
+    ('93_Teste_Plano_Caneta.scad',       '93_Teste_Plano_Caneta.stl',       1),
+    ('94_Teste_Engrenamento_Dinamico.scad','94_Teste_Engrenamento_Dinamico.stl',1),
     ('95_Teste_Montagem_Completa.scad',  '95_Teste_Montagem_Completa.stl',  1),
     ('97_Diagnostico_Motores.scad',      '97_Diagnostico_Motores.stl',      1),
     ('98_Teste_Interferencias.scad',     '98_Teste_Interferencias.stl',     1),
@@ -46,7 +53,7 @@ def compile_scad(scad_file, stl_file):
     stl_path  = CNC_DIR / stl_file
     
     cmd = ['openscad', '-o', str(stl_path), str(scad_path)]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=240)
     
     stderr = result.stderr
     warnings = []

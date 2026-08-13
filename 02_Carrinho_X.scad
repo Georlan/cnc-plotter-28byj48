@@ -1,125 +1,133 @@
 /*
-  =============================================================================
-  02_Carrinho_X.scad - Carrinho do Eixo X (GEOMETRIA CORRIGIDA DEFINITIVA)
-  =============================================================================
-  Correções aplicadas:
-    - Motor X movido para a face frontal, fora do envelope do trilho Y
-    - Flange do motor: orelhas independentes para motor_mount_spacing=35mm
-    - Geometria redundante removida (cubo interno desnecessário)
-    - Canal dovetail_female_x com orientação correta
-    - Encaixe para trilho Y (socket retangular)
-    - 1 ÚNICO COMPONENTE CONECTADO no STL
-  
-  Orientação de impressão: Z=0 no leito (fundo do carrinho).
-  =============================================================================
+  Carrinhos do portico X.
+
+  Pecas deste arquivo:
+    1. carrinho_x_motriz()       — PLA, motor e pinhao X
+    2. sapata_x_passiva()        — PETG, desliza no trilho traseiro
+    3. sela_x_passiva()          — PLA, recebe a viga e flutua +/-0,60 mm em Y
+
+  A sapata passiva e retida por um unico M3x8. O ressalto central fica 0,20 mm
+  acima da sela: o parafuso aperta no ressalto, nao bloqueia o movimento lateral.
 */
 
 include <00_Parametros.scad>;
 
-module carrinho_x() {
-  // Dimensões do corpo principal
-  cx_length = 28.0;  // X (comprimento ao longo do trilho)
-  cx_width  = 28.0;  // Y (largura transversal)
-  cx_height = 12.0;  // Z (altura total)
-
-  // Posição Y do canal dovetail (centro do carrinho)
-  dt_local_y = cx_width / 2;  // Y=14
-
-  // Motor X: corpo fora da face frontal (-Y), eixo apontando para +Y.
-  // Isso elimina a colisao do corpo de 28.2mm com o inicio do trilho Y.
-  motor_z_local = tooth_height/2 + gear_pitch_radius + gear_mesh_clearance;
-  // = tooth_height/2 + gear_pitch_radius ≈ 1.1 + 6.366 = 7.466mm
-  motor_y_local = x_motor_face_y_local;
-
-  // Centro da cremalheira X expresso no sistema local do carrinho.
-  // A espessura do pinhao fica centrada nesta coordenada.
-  rack_axis_y_local = x_rack_center_y - (base_w/2 - cx_width/2);
-
-  // Posição X dos furos de montagem do motor (35mm c/c)
-  motor_cx = cx_length / 2; // Centro do carrinho em X
-  hole_left_x  = motor_cx - motor_flange_dist/2;  // -3.5
-  hole_right_x = motor_cx + motor_flange_dist/2;  // 31.5
-
-  // Socket para o trilho Y (abertura superior)
-  socket_w = y_mount_tongue_w + 0.4;
-  socket_d = y_mount_tongue_d + 0.4;
-  socket_h = y_mount_tongue_h + 0.2;
-
+module front_beam_key() {
   difference() {
-    union() {
-      color([0.35, 0.42, 0.48]) {
-        // ====== CORPO PRINCIPAL ======
-        cube([cx_length, cx_width, cx_height]);
-
-        // ====== ORELHAS DO MOTOR (independentes, conectadas por braços) ======
-
-        // Orelha esquerda (X = hole_left_x = -3.5)
-        hull() {
-          // Boss da orelha
-          translate([hole_left_x, motor_y_local, motor_z_local])
-            rotate([-90, 0, 0])
-              cylinder(r=wall_screw, h=3.0);
-          // Conexão ao corpo principal
-          translate([0, motor_y_local, motor_z_local])
-            rotate([-90, 0, 0])
-              cylinder(r=wall_screw, h=3.0);
-        }
-
-        // Orelha direita (X = hole_right_x = 31.5)
-        hull() {
-          translate([hole_right_x, motor_y_local, motor_z_local])
-            rotate([-90, 0, 0])
-              cylinder(r=wall_screw, h=3.0);
-          translate([cx_length, motor_y_local, motor_z_local])
-            rotate([-90, 0, 0])
-              cylinder(r=wall_screw, h=3.0);
-        }
-      }
-    }
-
-    // ====== CANAL DOVETAIL FÊMEA (corte no fundo) ======
-    // O macho nasce 0.5mm dentro da plataforma do trilho; o corte acompanha
-    // esse embutimento para manter folga também nas faces inclinadas.
-    translate([0, dt_local_y, -0.5])
-      dovetail_female_x(length=cx_length);
-
-    // ====== FUROS M3 DE MONTAGEM DO MOTOR ======
-    // Furo esquerdo
-    translate([hole_left_x, motor_y_local - EPS, motor_z_local])
-      rotate([-90, 0, 0])
-        cylinder(r=motor_flange_hole_r, h=20);
-
-    // Furo direito
-    translate([hole_right_x, motor_y_local - EPS, motor_z_local])
-      rotate([-90, 0, 0])
-        cylinder(r=motor_flange_hole_r, h=20);
-
-    // ====== BOLSO DO PINHAO X ======
-    translate([motor_cx, rack_axis_y_local - pinion_thickness/2 - 0.2, motor_z_local])
-      rotate([-90, 0, 0])
-        cylinder(r=gear_outer_radius + 0.35, h=pinion_thickness + 0.4);
-
-    // Canal longitudinal para a cremalheira. Sem ele, os dentes de 2.2mm
-    // atravessavam o fundo do carrinho durante todo o curso X.
-    translate([-EPS, rack_axis_y_local - (rack_width + 0.8)/2, -EPS])
-      cube([cx_length + EPS*2, rack_width + 0.8,
-            tooth_height + 0.6 + EPS]);
-
-    // ====== SOCKET PARA O TRILHO Y ======
-    // Encaixe retangular no topo do carrinho (face Z+)
-    translate([cx_length/2 - socket_w/2,
-               cx_width/2 + y_mount_offset_y - socket_d/2,
-               cx_height - socket_h])
-      cube([socket_w, socket_d, socket_h + EPS]);
-
-    // Dois parafusos M3 travam o trilho Y no carrinho. A chaveta posiciona;
-    // os parafusos impedem levantamento e torcao durante aceleracoes.
-    for (sx = y_mount_screw_x)
-      translate([sx + 2.0,
-                 y_mount_screw_y + 7.0 + y_mount_offset_y, -EPS])
-        cylinder(r=1.65, h=cx_height + EPS*2);
+    translate([x_carriage_length/2-beam_key_w/2,
+               base_w/2+beam_key_inset, x_carriage_h-EPS])
+      cube([beam_key_w,beam_key_d,beam_key_h+EPS]);
+    translate([x_carriage_length/2,base_w/2+beam_key_inset-EPS,
+               x_carriage_h+beam_key_h/2])
+      rotate([-90,0,0]) cylinder(r=1.35,h=beam_key_d+2*EPS);
   }
 }
 
-// Renderização para impressão/exportação
-carrinho_x();
+module rear_beam_key(z0=passive_saddle_h) {
+  difference() {
+    translate([x_carriage_length/2-beam_key_w/2,
+               base_w/2-beam_key_inset-beam_key_d,z0-EPS])
+      cube([beam_key_w,beam_key_d,beam_key_h+EPS]);
+    translate([x_carriage_length/2,
+               base_w/2-beam_key_inset-beam_key_d-EPS,
+               z0+beam_key_h/2])
+      rotate([-90,0,0]) cylinder(r=1.35,h=beam_key_d+2*EPS);
+    // Alivio do ombro flutuante no limite de +/-0,60 mm.
+    hull()
+      for (dy=[-passive_float,passive_float])
+        translate([x_carriage_length/2,base_w/2+dy,z0-EPS])
+          cylinder(r=2.45,h=beam_key_h+2*EPS);
+  }
+}
+
+module carrinho_x_motriz() {
+  motor_x_axis_z = rack_pitch_height + gear_pitch_radius + gear_mesh_clearance;
+  motor_face_y = -3.3;
+
+  difference() {
+    union() {
+      cube([x_carriage_length,base_w,x_carriage_h]);
+
+      // Orelhas compactas: os dois furos ficam dentro dos 56 mm do carrinho.
+      for (hx=[x_carriage_length/2-motor_flange_dist/2,
+               x_carriage_length/2+motor_flange_dist/2])
+        translate([hx,motor_face_y,motor_x_axis_z])
+          rotate([-90,0,0]) cylinder(r=wall_screw,h=3.4);
+
+      front_beam_key();
+    }
+
+    translate([0,base_w/2,-0.5])
+      dovetail_female_x(x_carriage_length);
+
+    // Passagem da cremalheira e bolso do pinhao.
+    translate([-EPS,x_rack_center_y-(rack_width+0.8)/2,-EPS])
+      cube([x_carriage_length+2*EPS,rack_width+0.8,tooth_height+0.7]);
+    translate([x_carriage_length/2,
+               x_rack_center_y-pinion_thickness/2-0.2,motor_x_axis_z])
+      rotate([-90,0,0])
+        cylinder(r=gear_outer_radius+0.35,h=pinion_thickness+0.4);
+
+    for (hx=[x_carriage_length/2-motor_flange_dist/2,
+             x_carriage_length/2+motor_flange_dist/2])
+      translate([hx,motor_face_y-EPS,motor_x_axis_z])
+        rotate([-90,0,0]) cylinder(r=motor_flange_hole_r,h=8);
+  }
+}
+
+module sapata_x_passiva() {
+  shoulder_h = passive_saddle_h + 0.20;
+  difference() {
+    union() {
+      cube([x_carriage_length,base_w,passive_shoe_h]);
+      translate([x_carriage_length/2-passive_boss_w/2,
+                 base_w/2-passive_boss_d/2,passive_shoe_h-EPS])
+        cube([passive_boss_w,passive_boss_d,passive_boss_h+EPS]);
+      // Ombro de aperto: recebe a cabeca do M3 sem prensar a sela.
+      translate([x_carriage_length/2,base_w/2,passive_shoe_h])
+        cylinder(r=2.15,h=shoulder_h);
+    }
+    translate([0,base_w/2,-0.5])
+      dovetail_female_x(x_carriage_length);
+    translate([x_carriage_length/2,base_w/2,passive_shoe_h-EPS])
+      cylinder(r=1.30,h=shoulder_h+2*EPS);
+  }
+}
+
+module sela_x_passiva() {
+  pocket_w = passive_boss_w + 2*pressfit_clearance;
+  pocket_d = passive_boss_d + 2*passive_float + 2*pressfit_clearance;
+  slot_r = 2.35;
+  slide_relief = 0.25;
+
+  difference() {
+    union() {
+      cube([x_carriage_length,base_w,passive_saddle_h]);
+      rear_beam_key();
+    }
+
+    // Canais rasos: ponte maxima de 10 mm e apenas 21% de contato.
+    for (g=[[0,9],[12,10],[25,10],[38,10],[51,5]])
+      translate([g[0],-EPS,-EPS])
+        cube([g[1],base_w+2*EPS,slide_relief+EPS]);
+
+    // Bolso restringe X e libera somente o desalinhamento transversal Y.
+    translate([x_carriage_length/2-pocket_w/2,
+               base_w/2-pocket_d/2,-EPS])
+      cube([pocket_w,pocket_d,passive_boss_h+pressfit_clearance+EPS]);
+
+    // Rasgo do ombro/parafuso: 1,20 mm de movimento total em Y.
+    hull() {
+      for (dy=[-passive_float,passive_float])
+        translate([x_carriage_length/2,base_w/2+dy,-EPS])
+          cylinder(r=slot_r,h=passive_saddle_h+2*EPS);
+    }
+  }
+}
+
+// Alias usado por arquivos antigos e por quem quer apenas o carrinho motriz.
+module carrinho_x() carrinho_x_motriz();
+
+// Layout PLA: carrinho motriz e sela rigida. A sapata PETG fica em 02B.
+carrinho_x_motriz();
+translate([70,0,0]) sela_x_passiva();

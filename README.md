@@ -1,103 +1,172 @@
-# CNC Plotter 28BYJ-48 — 3D Printed Low-Cost Plotter
+# CNC Plotter 28BYJ-48 — baixo custo, impressa em 3D
 
-Plotter CNC educacional de baixo custo, modelada parametricamente em **OpenSCAD** para fabricacao FDM na **Bambu Lab A1**.
+Plotter cartesiana para papel A5, modelada parametricamente em OpenSCAD e
+otimizada para fabricação na Bambu Lab A1.
 
----
+## Arquitetura atual
 
-## 📐 Key Specifications & Tolerances
+- Um único eixo X apoiado em **dois trilhos paralelos**.
+- Trilho X dianteiro motriz: uma cremalheira, um pinhão e um 28BYJ-48.
+- Trilho X traseiro passivo: sem cremalheira e sem segundo motor.
+- Sapata PETG flutuante no apoio traseiro: `±0,60 mm` em Y para não travar por
+  pequeno erro de paralelismo.
+- Viga Y tubular de `30 x 24 mm`, parede de `1,8 mm`, diafragmas a cada
+  `40 mm` e apoio nas duas extremidades.
+- Papel parado; apenas pórtico, carrinho Y e caneta se movem.
+- Z com mola metálica: o plástico guia a caneta, mas não define sozinho a
+  pressão no papel.
 
-- **Curso nominal:** $164 \text{ mm} \times 138 \text{ mm} \times 6 \text{ mm}$.
-- **Papel:** suporte para A5. O curso de 164 x 138 mm **nao cobre toda a folha A5**; posicione a area do desenho dentro desses limites.
-- **Motors:** 3x **28BYJ-48 5V Stepper Motors** with D-shaft output ($5.0 \text{ mm}$ shaft diameter, $3.0 \text{ mm}$ flat).
-- **Linear Motion:** Integrated **Dovetail (Rabo de Andorinha)** rails and sliders.
-- **Transmissao:** cremalheira e pinhao de 10 dentes, passo circular de 4,0 mm (modulo geometrico aproximado $m=p/\pi=1.27$, nao modulo 1.5).
-- **Bambu Lab A1 Calibrated Clearances:**
-  - `slide_clearance_xy` = $0.25 \text{ mm}$ por lado no modelo atual.
-  - `slide_clearance_z` = $0.20 \text{ mm}$ por lado.
-  - Antes dos trilhos completos, imprima `99_Teste_Tolerancias.scad` e selecione a menor folga que deslize sem travar.
+O curso conservador é **148 x 180 mm** dentro de uma folha A5. A máquina segura
+a folha inteira, mas mantém margem de 15 mm nas extremidades longas.
 
----
+## Arquivos imprimíveis
 
-## 📁 Repository Structure
+| Arquivo | Conteúdo | Material |
+|---|---|---|
+| `01_Base_Trilho_X.scad` | trilho dianteiro com cremalheira | PLA |
+| `01B_Trilho_X_Passivo.scad` | trilho traseiro sem cremalheira | PLA |
+| `02_Carrinho_X.scad` | carrinho motriz + sela traseira | PLA |
+| `02B_Sapata_X_Passiva_PETG.scad` | sapata flutuante | PETG |
+| `03_Trilho_Y.scad` | viga-caixão Y com guia e rack | PLA |
+| `04_Carrinho_Y.scad` | carrinho Y e suportes dos motores Y/Z | PLA |
+| `05_Modulo_Z_Caneta.scad` | êmbolo Z + colar | PETG recomendado |
+| `06_Pinhoes.scad` | três pinhões D de 10 dentes | PETG recomendado |
+| `07_Batentes.scad` | quatro batentes X + dois Y, por pressão | PETG |
+| `08_Clips_Fixacao_Papel.scad` | quatro clips de papel | PLA ou PETG |
 
-```text
-CNC/
-├── 00_Parametros.scad                # Global parameters & shared geometric modules
-├── 01_Base_Trilho_X.scad             # Base Rail X (200mm long)
-├── 02_Carrinho_X.scad                # Carriage X (Slides on Base Rail X, holds Motor X)
-├── 03_Trilho_Y.scad                  # Rail Y (196mm long, mounts on Carriage X)
-├── 04_Carrinho_Y.scad                # Carriage Y (Slides on Rail Y, holds Motor Y)
-├── 05_Modulo_Z_Caneta.scad           # Pen Z-Axis Module with spring compliance plunger
-├── 06_Pinhoes.scad                   # 10-Tooth D-Shaft Pinion Gears
-├── 07_Batentes.scad                  # Mechanical Endstops & Rail Stops
-├── 08_Clips_Fixacao_Papel.scad       # A5 Bed Paper Clips
-├── 95_Teste_Montagem_Completa.scad    # Colisoes de guias, racks e pinhoes
-├── 96_Validacao_Curso.scad            # Montagem em centro/cantos via -D
-├── 97_Diagnostico_Motores.scad        # Teste CSG dos envelopes dos motores
-├── 98_Teste_Interferencias.scad       # Teste automatizado pinhoes/carro Z
-├── 99_Teste_Tolerancias.scad         # Cupom de folgas das guias
-├── CNC_Plotter_Full_Assembly.scad    # Complete 3D Assembly File
-└── testecnc/                         # Zoo KCL 2.0 modular implementation
+`02_Carrinho_X.scad` e `02B_Sapata_X_Passiva_PETG.scad` foram separados para
+não exigir PLA e PETG na mesma placa.
+
+## Parâmetros principais
+
+- Trilhos X: `220 x 26 mm`; distância entre centros: `240 mm`.
+- Viga Y: `240 x 30 x 24 mm`.
+- Guia XY: rabo de andorinha, folga inicial `0,22 mm` por lado.
+- Guia Z: folga inicial `0,15 mm` por lado e 22 mm de comprimento guiado.
+- Cremalheira: passo circular `4,0 mm`.
+- Pinhão: 10 dentes, perfil involuta *stub*, ângulo de pressão de 30°.
+- Relação cinemática correta: **9° de pinhão por mm linear**; 4 mm correspondem
+  a 36°, não a uma volta completa.
+
+Antes das peças longas, imprima `99_Teste_Tolerancias.scad`. Use a menor folga
+que deslize sem força após retirar rebarbas.
+
+## Altura e pressão da caneta
+
+- Curso total do motor Z: `8 mm`.
+- Compressão nominal no contato: `2 mm`.
+- Elevação livre real: `6 mm`.
+- Ponta baixa: `Z = 0,30 mm`, na superfície modelada do papel.
+- Ponta alta: `Z = 6,30 mm`.
+- Mola-alvo: `0,20 N/mm`, pré-carga de `1 mm`, curso complacente de `3 mm`.
+- Força nominal modelada: aproximadamente `0,60 N`.
+- Força no fim do curso complacente: aproximadamente `0,80 N`.
+
+Uma mola entre `0,15 e 0,25 N/mm` é aceitável. Ajuste primeiro a altura do
+colar com a máquina desligada; não use o motor para esmagar a ponta na mesa.
+
+## Massa e rigidez
+
+Volumes medidos nos STLs renderizados:
+
+- peças móveis impressas: aproximadamente **154 g**;
+- três motores, usando 35 g por motor como referência: aproximadamente 105 g;
+- caneta, mola e fixadores móveis: aproximadamente 15–25 g;
+- conjunto móvel estimado: **274–284 g**.
+
+O valor dos motores varia por fabricante. A estimativa não substitui a pesagem.
+
+Para a viga 30 x 24 x 1,8 mm, um cálculo simplificado de viga biapoiada com
+1,3 N no centro e módulo de PLA de 1,8 GPa resulta em cerca de `0,013 mm` de
+deflexão elástica. Isso não é FEA: juntas, empenamento e montagem fora de
+esquadro dominarão o erro real.
+
+## Fatiamento econômico na Bambu Lab A1
+
+### Trilhos e viga em PLA
+
+- camada: `0,24 mm`;
+- gerador de paredes: Arachne;
+- 3 paredes;
+- 4 camadas de topo/fundo;
+- 10% Gyroid nos blocos locais;
+- brim de 5–8 mm nos trilhos de 220 mm e 5 mm na viga de 240 mm;
+- suporte desativado.
+
+### Carrinhos em PLA
+
+- camada: `0,20 ou 0,24 mm`;
+- 4 paredes;
+- 15% Gyroid;
+- suporte desativado.
+
+### Sapata, Z e pinhões em PETG
+
+- camada: `0,20 mm`;
+- 4 paredes;
+- pinhões: 100% de preenchimento;
+- sapata/Z: 20–30%;
+- seque o PETG antes de imprimir as superfícies de guia.
+
+Os canais inferiores têm 0,25 mm de profundidade e pontes de no máximo 10 mm.
+Não ative suporte dentro deles.
+
+## Parafusos mínimos
+
+- 8x M4 para os dois trilhos (quatro por trilho);
+- 6x M3 para os três motores (dois por motor);
+- 2x M3 para as extremidades da viga;
+- 1x M3x8 para reter a sapata sem apertar a sela;
+- 1x M3 para o colar da caneta.
+
+Total estrutural: **18 parafusos**. Batentes são de pressão e os clips de papel
+podem usar fita dupla-face.
+
+## Montagem sem perder o esquadro
+
+1. Fixe totalmente apenas o trilho dianteiro.
+2. Deixe os quatro parafusos do trilho traseiro levemente soltos.
+3. Monte os dois carrinhos e a viga, sem forçar a sapata passiva.
+4. Desloque o pórtico manualmente por todo o X.
+5. Aperte o trilho traseiro aos poucos, alternando posições do pórtico.
+6. Aperte o M3 da sapata contra o ressalto; a sela deve continuar movendo
+   aproximadamente `±0,60 mm`.
+7. Só então monte motores e ajuste o engrenamento.
+
+## Validação
+
+Com o OpenSCAD CLI instalado:
+
+```bash
+python3 validate_geometry.py
 ```
 
-Os arquivos `.stl` da raiz sao artefatos gerados e nao ficam versionados. Gere a versao atual com:
+Testes:
+
+- `92_Teste_Estrutural.scad`: dimensões, esbeltez e área A5;
+- `93_Teste_Plano_Caneta.scad`: altura, elevação, força e guia Z;
+- `94_Teste_Engrenamento_Dinamico.scad`: 17 amostras em um passo completo;
+- `95_Teste_Montagem_Completa.scad`: interfaces e colisões estruturais;
+- `96_Validacao_Curso.scad`: centro e quatro extremos para inspeção visual;
+- `97_Diagnostico_Motores.scad`: envelopes dos motores;
+- `98_Teste_Interferencias.scad`: bolsos de pinhão e curso Z;
+- `99_Teste_Tolerancias.scad`: cupom físico de folgas.
+
+Os testes 92–95 e 97–98 devem exportar somente seu cubo marcador de 1 mm.
+Geometria adicional indica colisão.
+
+Para gerar somente os STLs imprimíveis:
 
 ```bash
 ./build_stl.sh
 ```
 
-Isso evita que um STL antigo seja confundido com a geometria atual dos arquivos `.scad`.
+## Limite elétrico
 
----
+Não alimente um 28BYJ-48 de 5 V diretamente com 12 V. Esta revisão mecânica não
+depende dessa modificação. Use aceleração moderada no firmware e valide perda
+de passos com quadrados e círculos antes do trabalho final.
 
-## 🖨️ 3D Printing Instructions (Bambu Lab A1)
+## Licença
 
-1. **Slicer Settings:**
-   - **Layer Height:** 0,24 mm para entrega rapida; 0,20 mm para a versao final.
-   - **Wall Loops:** 3 nos trilhos/carrinhos; 5 nos pinhoes.
-   - **Infill:** 10-12% Grid nos trilhos; 15% nos carrinhos; 100% nos pinhoes pequenos.
-   - **Top/Bottom:** 4 camadas.
-   - **Brim:** 5 mm nos trilhos longos.
-   - **Supports:** **DISABLED** (all parts are engineered to print support-free flat on the PEI bed).
-   - **Material:** PLA / PETG.
-
----
-
-## ⚙️ Assembly Quick Guide
-
-1. **Axis X:** Slide `02_Carrinho_X` onto `01_Base_Trilho_X`. Mount 28BYJ-48 motor with M3 screws and attach 10T pinion `06_Pinhoes`.
-2. **Axis Y:** Attach `03_Trilho_Y` perpendicular onto `02_Carrinho_X` com a chaveta e dois parafusos M3. Slide `04_Carrinho_Y` onto `03_Trilho_Y`.
-3. **Eixo Z:** insira o carro retangular de `05_Modulo_Z_Caneta` na guia do `04_Carrinho_Y`. Passe a caneta pelo carro, fixe o colar com M3 e coloque uma mola ao redor da caneta entre colar e ponte superior.
-
-### Mola recomendada para o Z
-
-- Diametro interno minimo: 10,8 mm para uma caneta de 10 mm.
-- Diametro externo nominal: 13 mm.
-- Comprimento livre: 14 mm.
-- Rigidez alvo: 0,15 a 0,25 N/mm (modelo usa 0,20 N/mm como referencia).
-- Pre-carga: 1 mm; curso complacente maximo: 3 mm.
-
-Essa faixa produz aproximadamente 0,2 N no contato inicial e 0,8 N no fim do curso. Valide com a caneta e o papel reais antes de executar desenhos longos.
-
-## Ordem de fabricacao recomendada
-
-1. Imprima o cupom `99_Teste_Tolerancias.scad`.
-2. Imprima um pinhao e um trecho curto de cremalheira para conferir engrenamento.
-3. Imprima os dois carrinhos e o modulo Z; monte os tres motores fora dos trilhos.
-4. Somente depois imprima os trilhos X/Y completos.
-
-`95_Teste_Montagem_Completa.scad`, `97_Diagnostico_Motores.scad` e
-`98_Teste_Interferencias.scad` devem exportar
-somente seus cubos marcadores de 1 mm. Geometria adicional significa colisao.
-O teste 95 verifica guias, canais de rack e pinhoes; o teste 97 percorre centro
-e extremos X/Y/Z e verifica corpos dos tres motores contra trilhos, carrinhos,
-modulo Z e entre si.
-
-Para inspecao visual repetivel, abra `96_Validacao_Curso.scad` ou compile com
-`-D 'VALIDATION_POSITION=0'` ate `4`: `0` e o centro e `1..4` sao os quatro
-cantos do curso.
-
----
-
-## 📄 License
-Open-Source Hardware — Free to use, modify, and distribute for personal and educational projects.
+Hardware aberto para uso pessoal e educacional.
