@@ -33,6 +33,7 @@ a folha inteira, mas mantém margem de 15 mm nas extremidades longas.
 | `06_Pinhoes.scad` | três pinhões D de 10 dentes | PETG recomendado |
 | `07_Batentes.scad` | quatro batentes X + dois Y, por pressão | PETG |
 | `08_Clips_Fixacao_Papel.scad` | quatro clips de papel | PLA ou PETG |
+| `91_Teste_Engrenamento_FDM.scad` | cupom rack + pinhão | material dos pinhões |
 
 `02_Carrinho_X.scad` e `02B_Sapata_X_Passiva_PETG.scad` foram separados para
 não exigir PLA e PETG na mesma placa.
@@ -48,8 +49,9 @@ não exigir PLA e PETG na mesma placa.
 - Relação cinemática correta: **9° de pinhão por mm linear**; 4 mm correspondem
   a 36°, não a uma volta completa.
 
-Antes das peças longas, imprima `99_Teste_Tolerancias.scad`. Use a menor folga
-que deslize sem força após retirar rebarbas.
+Antes das peças longas, imprima `99_Teste_Tolerancias.scad` e
+`91_Teste_Engrenamento_FDM.scad`. Use a menor folga que deslize sem força
+após retirar rebarbas.
 
 ## Altura e pressão da caneta
 
@@ -143,6 +145,7 @@ python3 validate_geometry.py
 
 Testes:
 
+- `91_Teste_Engrenamento_FDM.scad`: cupom físico barato do perfil real;
 - `92_Teste_Estrutural.scad`: dimensões, esbeltez e área A5;
 - `93_Teste_Plano_Caneta.scad`: altura, elevação, força e guia Z;
 - `94_Teste_Engrenamento_Dinamico.scad`: 17 amostras em um passo completo;

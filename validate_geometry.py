@@ -31,6 +31,7 @@ PIECES = [
     ('06_Pinhoes.scad',                  '06_Pinhoes.stl',                  3),
     ('07_Batentes.scad',                 '07_Batentes.stl',                 6),
     ('08_Clips_Fixacao_Papel.scad',      '08_Clips_Fixacao_Papel.stl',      4),
+    ('91_Teste_Engrenamento_FDM.scad',   '91_Teste_Engrenamento_FDM.stl',   2),
     ('92_Teste_Estrutural.scad',         '92_Teste_Estrutural.stl',         1),
     ('93_Teste_Plano_Caneta.scad',       '93_Teste_Plano_Caneta.stl',       1),
     ('94_Teste_Engrenamento_Dinamico.scad','94_Teste_Engrenamento_Dinamico.stl',1),
