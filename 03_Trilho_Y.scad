@@ -18,13 +18,13 @@
 
 include <00_Parametros.scad>;
 
-module trilho_y(length=y_rail_length) {
-  rail_w = 24.0;   // X
+module trilho_y(length=y_rail_length, include_rack=true) {
+  rail_w = y_rail_width;
   rail_h = 10.0;   // Z
   back_h = 3.0;    // Espessura da placa traseira
 
-  dt_x   = rail_w / 2;       // X=12
-  rack_x = rail_w - 5.0;     // X=19
+  dt_x   = y_dovetail_center_x;
+  rack_x = y_rack_center_x;
 
   rib_w  = wall_structural;  // 2.8mm
 
@@ -61,7 +61,7 @@ module trilho_y(length=y_rail_length) {
       }
 
         // Boss local recebe a metade superior da chaveta.
-        translate([rail_w/2 - (tongue_w + 4.0)/2, 0, 0])
+        translate([dt_x - (tongue_w + 4.0)/2, 0, 0])
           cube([tongue_w + 4.0, tongue_d + 4.0, y_mount_boss_h]);
       }
 
@@ -71,16 +71,21 @@ module trilho_y(length=y_rail_length) {
           dovetail_male_y(length=length);
 
       // ====== CREMALHEIRA Y ======
-      color([0.95, 0.85, 0.15])
-        translate([rack_x, 0, rail_h])
-          rack_y(length=length);
+      if (include_rack)
+        color([0.95, 0.85, 0.15])
+          translate([rack_x, 0, rail_h])
+            rack_y(length=length);
     }
 
     // Socket inferior do trilho: mantem Z minimo em zero e a face traseira plana.
-    translate([rail_w/2 - (tongue_w + 0.4)/2,
+    translate([dt_x - (tongue_w + 0.4)/2,
                -(EPS), -EPS])
       cube([tongue_w + 0.4, tongue_d + 0.4,
             y_mount_upper_socket_h + EPS]);
+
+    for (sx = y_mount_screw_x)
+      translate([sx, y_mount_screw_y, -EPS])
+        cylinder(r=1.65, h=y_mount_boss_h + EPS*2);
   }
 }
 
@@ -91,4 +96,5 @@ module y_mount_key() {
 
 // Renderização para impressão/exportação
 trilho_y();
-translate([35, 8, 0]) y_mount_key();
+// Peça avulsa para impressão: manter afastada do trilho alargado de 28 mm.
+translate([48, 8, 0]) y_mount_key();

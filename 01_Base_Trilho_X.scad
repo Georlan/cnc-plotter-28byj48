@@ -20,7 +20,7 @@
 
 include <00_Parametros.scad>;
 
-module base_trilho_x(length=x_rail_length) {
+module base_trilho_x(length=x_rail_length, include_rack=true) {
   dt_y   = base_w / 2;         // Y=15: centro do dovetail
   rack_y = x_rack_center_y;    // Y=5: cremalheira na face frontal
   rib_w  = wall_structural;    // 2.8mm largura das nervuras
@@ -63,9 +63,10 @@ module base_trilho_x(length=x_rail_length) {
 
       // ====== CREMALHEIRA X ======
       // Overlap: base de 0.6mm afundada na plataforma
-      color([0.95, 0.85, 0.15])
-        translate([0, rack_y, base_h])
-          rack_x(length=length);
+      if (include_rack)
+        color([0.95, 0.85, 0.15])
+          translate([0, rack_y, base_h])
+            rack_x(length=length);
     }
 
     // ====== FUROS M4 PARA FIXAÇÃO NA BANCADA ======

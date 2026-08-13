@@ -31,6 +31,7 @@ CNC/
 ├── 06_Pinhoes.scad                   # 10-Tooth D-Shaft Pinion Gears
 ├── 07_Batentes.scad                  # Mechanical Endstops & Rail Stops
 ├── 08_Clips_Fixacao_Papel.scad       # A5 Bed Paper Clips
+├── 95_Teste_Montagem_Completa.scad    # Colisoes de guias, racks e pinhoes
 ├── 96_Validacao_Curso.scad            # Montagem em centro/cantos via -D
 ├── 97_Diagnostico_Motores.scad        # Teste CSG dos envelopes dos motores
 ├── 98_Teste_Interferencias.scad       # Teste automatizado pinhoes/carro Z
@@ -65,7 +66,7 @@ Isso evita que um STL antigo seja confundido com a geometria atual dos arquivos 
 ## ⚙️ Assembly Quick Guide
 
 1. **Axis X:** Slide `02_Carrinho_X` onto `01_Base_Trilho_X`. Mount 28BYJ-48 motor with M3 screws and attach 10T pinion `06_Pinhoes`.
-2. **Axis Y:** Attach `03_Trilho_Y` perpendicular onto `02_Carrinho_X`. Slide `04_Carrinho_Y` onto `03_Trilho_Y`.
+2. **Axis Y:** Attach `03_Trilho_Y` perpendicular onto `02_Carrinho_X` com a chaveta e dois parafusos M3. Slide `04_Carrinho_Y` onto `03_Trilho_Y`.
 3. **Eixo Z:** insira o carro retangular de `05_Modulo_Z_Caneta` na guia do `04_Carrinho_Y`. Passe a caneta pelo carro, fixe o colar com M3 e coloque uma mola ao redor da caneta entre colar e ponte superior.
 
 ### Mola recomendada para o Z
@@ -85,10 +86,12 @@ Essa faixa produz aproximadamente 0,2 N no contato inicial e 0,8 N no fim do cur
 3. Imprima os dois carrinhos e o modulo Z; monte os tres motores fora dos trilhos.
 4. Somente depois imprima os trilhos X/Y completos.
 
-`97_Diagnostico_Motores.scad` e `98_Teste_Interferencias.scad` devem exportar
+`95_Teste_Montagem_Completa.scad`, `97_Diagnostico_Motores.scad` e
+`98_Teste_Interferencias.scad` devem exportar
 somente seus cubos marcadores de 1 mm. Geometria adicional significa colisao.
-O teste 97 percorre centro e extremos X/Y/Z e verifica corpos dos tres motores
-contra trilhos, carrinhos, modulo Z e entre si.
+O teste 95 verifica guias, canais de rack e pinhoes; o teste 97 percorre centro
+e extremos X/Y/Z e verifica corpos dos tres motores contra trilhos, carrinhos,
+modulo Z e entre si.
 
 Para inspecao visual repetivel, abra `96_Validacao_Curso.scad` ou compile com
 `-D 'VALIDATION_POSITION=0'` ate `4`: `0` e o centro e `1..4` sao os quatro

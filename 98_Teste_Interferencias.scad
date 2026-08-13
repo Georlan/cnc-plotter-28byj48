@@ -12,14 +12,17 @@ intersection() {
   carrinho_x();
   translate([14,
              x_rack_center_y - (base_w/2 - 28/2) - pinion_thickness/2,
-             tooth_height/2 + gear_pitch_radius])
+             tooth_height/2 + gear_pitch_radius + gear_mesh_clearance])
     rotate([-90, 0, 0]) pinion_gear();
 }
 
 // Pinhao Y versus carrinho Y.
 translate([60, 0, 0]) intersection() {
   carrinho_y();
-  translate([19.5, y_carriage_length/2, tooth_height/2 + gear_pitch_radius])
+  translate([y_rack_center_x - pinion_thickness/2
+             - (y_dovetail_center_x - 32/2),
+             y_carriage_length/2,
+             tooth_height/2 + gear_pitch_radius + gear_mesh_clearance])
     rotate([0, 90, 0]) pinion_gear();
 }
 
