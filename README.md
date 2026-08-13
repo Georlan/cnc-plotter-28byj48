@@ -34,14 +34,16 @@ CNC/
 ├── 98_Teste_Interferencias.scad      # Teste automatizado pinhoes/carro Z
 ├── 99_Teste_Tolerancias.scad         # Cupom de folgas das guias
 ├── CNC_Plotter_Full_Assembly.scad    # Complete 3D Assembly File
-├── 01_Base_Trilho_X.stl              # Pre-compiled STL for Base X
-├── 02_Carrinho_X.stl              # Pre-compiled STL for Carriage X
-├── 03_Trilho_Y.stl              # Pre-compiled STL for Rail Y
-├── 04_Carrinho_Y.stl              # Pre-compiled STL for Carriage Y
-├── 05_Modulo_Z_Caneta.stl       # Pre-compiled STL for Z Module
-├── 06_Pinhoes.stl               # Pre-compiled STL for Pinions
 └── testecnc/                         # Zoo KCL 2.0 modular implementation
 ```
+
+Os arquivos `.stl` da raiz sao artefatos gerados e nao ficam versionados. Gere a versao atual com:
+
+```bash
+./build_stl.sh
+```
+
+Isso evita que um STL antigo seja confundido com a geometria atual dos arquivos `.scad`.
 
 ---
 
