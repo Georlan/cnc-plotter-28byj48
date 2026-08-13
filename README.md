@@ -31,7 +31,9 @@ CNC/
 ├── 06_Pinhoes.scad                   # 10-Tooth D-Shaft Pinion Gears
 ├── 07_Batentes.scad                  # Mechanical Endstops & Rail Stops
 ├── 08_Clips_Fixacao_Papel.scad       # A5 Bed Paper Clips
-├── 98_Teste_Interferencias.scad      # Teste automatizado pinhoes/carro Z
+├── 96_Validacao_Curso.scad            # Montagem em centro/cantos via -D
+├── 97_Diagnostico_Motores.scad        # Teste CSG dos envelopes dos motores
+├── 98_Teste_Interferencias.scad       # Teste automatizado pinhoes/carro Z
 ├── 99_Teste_Tolerancias.scad         # Cupom de folgas das guias
 ├── CNC_Plotter_Full_Assembly.scad    # Complete 3D Assembly File
 └── testecnc/                         # Zoo KCL 2.0 modular implementation
@@ -83,7 +85,14 @@ Essa faixa produz aproximadamente 0,2 N no contato inicial e 0,8 N no fim do cur
 3. Imprima os dois carrinhos e o modulo Z; monte os tres motores fora dos trilhos.
 4. Somente depois imprima os trilhos X/Y completos.
 
-`98_Teste_Interferencias.scad` deve exportar somente um cubo de 1 mm. Geometria adicional significa que um pinhao ou o carro Z atravessa uma peca fixa.
+`97_Diagnostico_Motores.scad` e `98_Teste_Interferencias.scad` devem exportar
+somente seus cubos marcadores de 1 mm. Geometria adicional significa colisao.
+O teste 97 percorre centro e extremos X/Y/Z e verifica corpos dos tres motores
+contra trilhos, carrinhos, modulo Z e entre si.
+
+Para inspecao visual repetivel, abra `96_Validacao_Curso.scad` ou compile com
+`-D 'VALIDATION_POSITION=0'` ate `4`: `0` e o centro e `1..4` sao os quatro
+cantos do curso.
 
 ---
 

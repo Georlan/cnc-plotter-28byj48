@@ -26,6 +26,7 @@ SCAD_FILES=(
   "06_Pinhoes.scad"
   "07_Batentes.scad"
   "08_Clips_Fixacao_Papel.scad"
+  "97_Diagnostico_Motores.scad"
   "98_Teste_Interferencias.scad"
   "99_Teste_Tolerancias.scad"
   "CNC_Plotter_Animated_Simulation.scad"

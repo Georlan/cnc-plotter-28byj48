@@ -3,6 +3,7 @@
   02_Carrinho_X.scad - Carrinho do Eixo X (GEOMETRIA CORRIGIDA DEFINITIVA)
   =============================================================================
   Correções aplicadas:
+    - Motor X movido para a face frontal, fora do envelope do trilho Y
     - Flange do motor: orelhas independentes para motor_mount_spacing=35mm
     - Geometria redundante removida (cubo interno desnecessário)
     - Canal dovetail_female_x com orientação correta
@@ -24,15 +25,15 @@ module carrinho_x() {
   // Posição Y do canal dovetail (centro do carrinho)
   dt_local_y = cx_width / 2;  // Y=14
 
-  // Motor X: eixo apontando para +Y (em direção à cremalheira)
-  // O motor fica na face Y+ do carrinho
+  // Motor X: corpo fora da face frontal (-Y), eixo apontando para +Y.
+  // Isso elimina a colisao do corpo de 28.2mm com o inicio do trilho Y.
   motor_z_local = (base_h + tooth_height / 2 + gear_pitch_radius) - base_h;
   // = tooth_height/2 + gear_pitch_radius ≈ 1.1 + 6.366 = 7.466mm
-  motor_y_local = cx_width - 3.0;  // Plano das orelhas na face +Y
+  motor_y_local = x_motor_face_y_local;
 
   // Centro da cremalheira X expresso no sistema local do carrinho.
   // A espessura do pinhao fica centrada nesta coordenada.
-  rack_axis_y_local = (base_w - 5.0) - (base_w/2 - cx_width/2);
+  rack_axis_y_local = x_rack_center_y - (base_w/2 - cx_width/2);
 
   // Posição X dos furos de montagem do motor (35mm c/c)
   motor_cx = cx_length / 2; // Centro do carrinho em X
@@ -91,15 +92,9 @@ module carrinho_x() {
       rotate([-90, 0, 0])
         cylinder(r=motor_flange_hole_r, h=20);
 
-    // ====== REBAIXO PARA O CORPO DO MOTOR ======
-    translate([motor_cx, motor_y_local + 2.0, motor_z_local])
-      rotate([-90, 0, 0])
-        cylinder(r=motor_body_r + 0.5, h=motor_body_h + 5);
-
     // ====== BOLSO DO PINHAO X ======
-    // Sem este volume o pinhao atravessava o corpo solido do carrinho.
-    translate([motor_cx, rack_axis_y_local + pinion_thickness/2 + 0.2, motor_z_local])
-      rotate([90, 0, 0])
+    translate([motor_cx, rack_axis_y_local - pinion_thickness/2 - 0.2, motor_z_local])
+      rotate([-90, 0, 0])
         cylinder(r=gear_outer_radius + 0.35, h=pinion_thickness + 0.4);
 
     // ====== SOCKET PARA O TRILHO Y ======

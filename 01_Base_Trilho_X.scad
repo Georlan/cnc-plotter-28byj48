@@ -22,7 +22,7 @@ include <00_Parametros.scad>;
 
 module base_trilho_x(length=x_rail_length) {
   dt_y   = base_w / 2;         // Y=15: centro do dovetail
-  rack_y = base_w - 5.0;       // Y=25: centro da cremalheira
+  rack_y = x_rack_center_y;    // Y=5: cremalheira na face frontal
   rib_w  = wall_structural;    // 2.8mm largura das nervuras
 
   dt_platform_w    = dovetail_width_bottom + 1.0; // 10.5mm

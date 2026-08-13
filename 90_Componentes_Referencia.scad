@@ -9,6 +9,15 @@
 
 include <00_Parametros.scad>;
 
+// Envelope usado pelos testes de interferencia. Mantem apenas o corpo do
+// motor: eixo, boss e flanges sao excluidos porque atravessam intencionalmente
+// a placa de montagem e o pinhao.
+module motor_28byj48_body_envelope(clearance=0, face_relief=0.05) {
+  translate([0, 0, -motor_body_h - clearance])
+    cylinder(r=motor_body_r + clearance,
+             h=motor_body_h + clearance - face_relief);
+}
+
 module motor_28byj48_reference() {
   // A face de montagem/saida e Z=0. O corpo fica em Z negativo e o eixo
   // aponta para Z positivo, como no motor real. Isso torna a montagem inequivoca.
