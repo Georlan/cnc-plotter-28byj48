@@ -26,13 +26,13 @@ test_clearance=0.05;
 module motor_x_back(px) {
   z=base_h+rack_pitch_height+gear_pitch_radius+gear_mesh_clearance;
   translate([px,front_y-motor_x_mount_standoff,z])
-    rotate([-90,0,0])
+    orient_motor_x()
       motor_28byj48_back_envelope(clearance=test_clearance);
 }
 module motor_x_output(px) {
   z=base_h+rack_pitch_height+gear_pitch_radius+gear_mesh_clearance;
   translate([px,front_y-motor_x_mount_standoff,z])
-    rotate([-90,0,0])
+    orient_motor_x()
       motor_28byj48_output_envelope(clearance=test_clearance);
 }
 module motor_y_back(px,py) {
@@ -40,7 +40,7 @@ module motor_y_back(px,py) {
   cy=py-z_axis_center_y_local;
   z=y_beam_top_z+rack_pitch_height+gear_pitch_radius+gear_mesh_clearance;
   translate([cx+y_carriage_w,cy+y_carriage_length/2,z])
-    rotate([0,-90,0])
+    orient_motor_y()
       motor_28byj48_back_envelope(clearance=test_clearance);
 }
 module motor_y_output(px,py) {
@@ -48,7 +48,7 @@ module motor_y_output(px,py) {
   cy=py-z_axis_center_y_local;
   z=y_beam_top_z+rack_pitch_height+gear_pitch_radius+gear_mesh_clearance;
   translate([cx+y_carriage_w,cy+y_carriage_length/2,z])
-    rotate([0,-90,0])
+    orient_motor_y()
       motor_28byj48_output_envelope(clearance=test_clearance);
 }
 module motor_z_back(px,py) {
@@ -56,7 +56,7 @@ module motor_z_back(px,py) {
   cy=py-z_axis_center_y_local;
   translate([cx+z_motor_axis_x_local,cy,
              y_beam_top_z+z_motor_axis_z_local])
-    rotate([-90,0,0])
+    orient_motor_z()
       motor_28byj48_back_envelope(clearance=test_clearance);
 }
 module motor_z_output(px,py) {
@@ -64,7 +64,7 @@ module motor_z_output(px,py) {
   cy=py-z_axis_center_y_local;
   translate([cx+z_motor_axis_x_local,cy,
              y_beam_top_z+z_motor_axis_z_local])
-    rotate([-90,0,0])
+    orient_motor_z()
       motor_28byj48_output_envelope(clearance=test_clearance);
 }
 module beam(px) translate([px,0,y_beam_bottom_z]) trilho_y();

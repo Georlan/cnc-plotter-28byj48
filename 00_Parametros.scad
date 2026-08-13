@@ -310,11 +310,15 @@ module rack_profile_linear(length, pitch=rack_pitch) {
 
 module pinion_gear(teeth=gear_teeth, pitch=rack_pitch,
                    thickness=pinion_thickness) {
-  difference() {
-    linear_extrude(height=thickness)
-      pinion_profile_solid(teeth,pitch);
-    translate([0,0,-EPS]) d_shaft_hole(h=thickness+2*EPS);
-  }
+  // Forca uma malha CGAL antes de devolver o pinhao ao preview. No OpenSCAD
+  // 2021, o OpenCSG mostra as unioes dos dentes com faces escuras/vazadas no
+  // F5 mesmo quando o STL final e valido. render() elimina esse artefato.
+  render(convexity=10)
+    difference() {
+      linear_extrude(height=thickness)
+        pinion_profile_solid(teeth,pitch);
+      translate([0,0,-EPS]) d_shaft_hole(h=thickness+2*EPS);
+    }
 }
 
 module d_shaft_solid(h=10) {
