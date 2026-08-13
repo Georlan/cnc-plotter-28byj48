@@ -48,6 +48,8 @@ não exigir PLA e PETG na mesma placa.
 - Pinhão: 10 dentes, perfil involuta *stub*, ângulo de pressão de 30°.
 - A raiz dos dentes tem `0,20 mm` de sobreposição no cubo para manter a peça
   manifold e evitar o falso efeito de transparência no preview OpenCSG.
+- O módulo do pinhão força `render(convexity=10)`, necessário para o preview F5
+  do OpenSCAD 2021 mostrar dentes sólidos em vez das faces vazadas do OpenCSG.
 - Relação cinemática correta: **9° de pinhão por mm linear**; 4 mm correspondem
   a 36°, não a uma volta completa.
 

@@ -55,7 +55,7 @@ module cnc_plotter_assembly(
 
   if (show_motors)
     translate([pos_x,front_rail_y-motor_x_mount_standoff,motor_x_axis_z])
-      rotate([-90,0,0]) motor_28byj48_reference();
+      orient_motor_x() motor_28byj48_reference();
 
   // 3. Apoio traseiro: a sapata acompanha eventual erro do trilho; sela e
   // viga permanecem geometricamente esquadrejadas ao conjunto dianteiro.
@@ -88,7 +88,7 @@ module cnc_plotter_assembly(
 
   if (show_motors)
     translate([cy_x0+y_carriage_w,motor_y_axis_y,motor_y_axis_z])
-      rotate([0,-90,0]) motor_28byj48_reference();
+      orient_motor_y() motor_28byj48_reference();
 
   // 6. Z complacente. A compressao desaparece progressivamente ao levantar.
   z_compression = nominal_compression*(1-pos_z/Z_UP);
@@ -109,19 +109,19 @@ module cnc_plotter_assembly(
 
   if (show_motors)
     translate([pz_x,cy_y0,pz_z])
-      rotate([-90,0,0]) motor_28byj48_reference();
+      orient_motor_z() motor_28byj48_reference();
 
   if (show_fasteners) {
     // Parafusos dos motores: dois por motor.
     for (dx=[-motor_flange_dist/2,motor_flange_dist/2])
       translate([pos_x+dx,front_rail_y-motor_x_mount_standoff,motor_x_axis_z])
-        rotate([-90,0,0]) m3_screw_reference(7);
+        orient_motor_x() m3_screw_reference(7);
     for (dy=[-motor_flange_dist/2,motor_flange_dist/2])
       translate([cy_x0+y_carriage_w,motor_y_axis_y+dy,motor_y_axis_z])
-        rotate([0,-90,0]) m3_screw_reference(7);
+        orient_motor_y() m3_screw_reference(7);
     for (dx=[-motor_flange_dist/2,motor_flange_dist/2])
       translate([pz_x+dx,cy_y0,pz_z])
-        rotate([-90,0,0]) m3_screw_reference(7);
+        orient_motor_z() m3_screw_reference(7);
 
     // Um M3 por ponta da viga e um M3 com ombro na sapata passiva.
     translate([pos_x,0, y_beam_bottom_z+beam_key_h/2])

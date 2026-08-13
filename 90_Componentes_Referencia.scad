@@ -9,6 +9,13 @@
 
 include <00_Parametros.scad>;
 
+// Orientacoes canonicas de montagem. O eixo local do 28BYJ-48 e +Z.
+// A rotacao adicional do motor Y gira apenas a chapa ao redor do proprio eixo,
+// alinhando suas orelhas com os dois furos separados ao longo de Y.
+module orient_motor_x() { rotate([-90,0,0]) children(); }
+module orient_motor_y() { rotate([0,-90,0]) rotate([0,0,90]) children(); }
+module orient_motor_z() { rotate([-90,0,0]) children(); }
+
 // Envelopes separados permitem testar o que fica atras da face de montagem e
 // o que precisa passar pelos furos coaxiais da peca impressa.
 module motor_28byj48_body_envelope(clearance=0, face_relief=0.05) {
