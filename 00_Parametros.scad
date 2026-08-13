@@ -35,9 +35,13 @@ motor_body_r         = motor_body_diameter / 2;
 motor_body_h         = 19.0;
 motor_flange_dist    = motor_mount_spacing;
 motor_flange_hole_r  = 1.6;
+motor_flange_outer_r = 3.5;
+motor_flange_thickness = 1.0;
 motor_boss_r         = 4.6;
 motor_boss_h         = 1.5;
 motor_shaft_r        = motor_shaft_diameter / 2;
+motor_mount_clearance = 0.25;
+motor_x_mount_standoff = 3.3;
 
 // Estrutura fixa X. Os centros dos trilhos ficam em Y=0 e Y=x_rail_spacing.
 x_rail_length     = 220.0;

@@ -9,13 +9,49 @@
 
 include <00_Parametros.scad>;
 
-// Envelope usado pelos testes de interferencia. Mantem apenas o corpo do
-// motor: eixo, boss e flanges sao excluidos porque atravessam intencionalmente
-// a placa de montagem e o pinhao.
+// Envelopes separados permitem testar o que fica atras da face de montagem e
+// o que precisa passar pelos furos coaxiais da peca impressa.
 module motor_28byj48_body_envelope(clearance=0, face_relief=0.05) {
   translate([0, 0, -motor_body_h - clearance])
     cylinder(r=motor_body_r + clearance,
              h=motor_body_h + clearance - face_relief);
+}
+
+module motor_28byj48_flange_envelope(clearance=0, face_relief=0.05) {
+  hull()
+    for (dx=[-motor_flange_dist/2,motor_flange_dist/2])
+      translate([dx,0,-motor_flange_thickness-clearance])
+        cylinder(r=motor_flange_outer_r+clearance,
+                 h=motor_flange_thickness+clearance-face_relief);
+}
+
+module motor_28byj48_back_envelope(clearance=0, face_relief=0.05) {
+  union() {
+    motor_28byj48_body_envelope(clearance,face_relief);
+    motor_28byj48_flange_envelope(clearance,face_relief);
+  }
+}
+
+module motor_28byj48_output_envelope(clearance=0, base_relief=0.03) {
+  translate([0,0,base_relief])
+    cylinder(r=motor_boss_r+clearance,
+             h=motor_boss_h-base_relief);
+  translate([0,0,motor_boss_h])
+    cylinder(r=motor_shaft_r+clearance,h=motor_shaft_length);
+}
+
+module motor_28byj48_flange_reference() {
+  difference() {
+    hull()
+      for (dx=[-motor_flange_dist/2,motor_flange_dist/2])
+        translate([dx,0,-motor_flange_thickness])
+          cylinder(r=motor_flange_outer_r,h=motor_flange_thickness);
+
+    for (dx=[-motor_flange_dist/2,motor_flange_dist/2])
+      translate([dx,0,-motor_flange_thickness-EPS])
+        cylinder(r=motor_flange_hole_r,
+                 h=motor_flange_thickness+2*EPS);
+  }
 }
 
 module motor_28byj48_reference() {
@@ -24,6 +60,11 @@ module motor_28byj48_reference() {
   color([0.7, 0.7, 0.72])
     translate([0, 0, -motor_body_h])
       cylinder(r=motor_body_r, h=motor_body_h);
+
+  // Chapa frontal continua com as duas orelhas. No modelo anterior os furos
+  // eram aneis soltos, fazendo o motor parecer suspenso no ar.
+  color([0.60,0.60,0.63])
+    motor_28byj48_flange_reference();
 
   // Boss de saída do eixo
   color([0.65, 0.65, 0.68])
@@ -35,16 +76,6 @@ module motor_28byj48_reference() {
     translate([0, 0, motor_boss_h])
       d_shaft_solid(h=motor_shaft_length);
 
-  // Furos de montagem (flanges laterais)
-  color([0.6, 0.6, 0.63])
-  for (dx = [-motor_flange_dist/2, motor_flange_dist/2]) {
-    translate([dx, 0, -1.0])
-      difference() {
-        cylinder(r=3.5, h=1.0);
-        translate([0, 0, -EPS])
-          cylinder(r=motor_flange_hole_r, h=1.0 + EPS*2);
-      }
-  }
 }
 
 module m3_screw_reference(length=8.0) {

@@ -14,6 +14,11 @@ module carrinho_y() {
   motor_y_axis_z = rack_pitch_height + gear_pitch_radius + gear_mesh_clearance;
   motor_y_face_x = y_carriage_w;
   motor_y_center_y = y_carriage_length/2;
+  pinion_y_pocket_x0 = rack_local_x-pinion_thickness/2-0.2;
+  pinion_y_pocket_x1 = pinion_y_pocket_x0+pinion_thickness+0.4;
+  motor_y_passage_h = motor_y_face_x-pinion_y_pocket_x1+0.6;
+  pinion_z_pocket_y0 = z_axis_center_y_local-pinion_thickness/2-0.2;
+  motor_z_passage_h = pinion_z_pocket_y0+0.6;
   z_slot_w = z_carriage_w + 2*slide_clearance_z;
   z_slot_d = z_carriage_d + 2*slide_clearance_z;
   tower_wall = 2.4;
@@ -63,6 +68,21 @@ module carrinho_y() {
       rotate([0,90,0])
         cylinder(r=gear_outer_radius+0.35,h=pinion_thickness+0.4);
 
+    // Passagem do ressalto/eixo do motor Y desde a face lateral ate o bolso.
+    // Antes desta abertura havia 2,8 mm de material atravessado pelo eixo.
+    translate([motor_y_face_x+EPS,motor_y_center_y,motor_y_axis_z])
+      rotate([0,-90,0])
+        cylinder(r=motor_boss_r+motor_mount_clearance,
+                 h=motor_y_passage_h+EPS);
+
+    // A ponta do eixo D passa 0,30 mm alem do bolso do pinhao. Mantemos a
+    // abertura adicional estreita para preservar a parede lateral.
+    translate([motor_y_face_x+EPS,motor_y_center_y,motor_y_axis_z])
+      rotate([0,-90,0])
+        cylinder(r=motor_shaft_r+motor_mount_clearance,
+                 h=motor_boss_h+motor_shaft_length+
+                   motor_mount_clearance+EPS);
+
     // Guia Z passante e corredor externo da cremalheira vertical.
     translate([z_axis_center_x_local-z_slot_w/2,
                z_axis_center_y_local-z_slot_d/2,-EPS])
@@ -77,6 +97,18 @@ module carrinho_y() {
                z_motor_axis_z_local])
       rotate([-90,0,0])
         cylinder(r=gear_outer_radius+0.35,h=pinion_thickness+0.4);
+
+    // Passagem coaxial do motor Z ate o bolso do pinhao. A flange apoia na
+    // face dianteira; somente ressalto e eixo entram no carrinho.
+    translate([z_motor_axis_x_local,-EPS,z_motor_axis_z_local])
+      rotate([-90,0,0])
+        cylinder(r=motor_boss_r+motor_mount_clearance,
+                 h=motor_z_passage_h+EPS);
+    translate([z_motor_axis_x_local,-EPS,z_motor_axis_z_local])
+      rotate([-90,0,0])
+        cylinder(r=motor_shaft_r+motor_mount_clearance,
+                 h=motor_boss_h+motor_shaft_length+
+                   motor_mount_clearance+EPS);
 
     for (hy=[motor_y_center_y-motor_flange_dist/2,
              motor_y_center_y+motor_flange_dist/2])

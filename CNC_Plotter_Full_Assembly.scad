@@ -54,7 +54,7 @@ module cnc_plotter_assembly(
         pinion_gear();
 
   if (show_motors)
-    translate([pos_x,front_rail_y-3.3,motor_x_axis_z])
+    translate([pos_x,front_rail_y-motor_x_mount_standoff,motor_x_axis_z])
       rotate([-90,0,0]) motor_28byj48_reference();
 
   // 3. Apoio traseiro: a sapata acompanha eventual erro do trilho; sela e
@@ -114,7 +114,7 @@ module cnc_plotter_assembly(
   if (show_fasteners) {
     // Parafusos dos motores: dois por motor.
     for (dx=[-motor_flange_dist/2,motor_flange_dist/2])
-      translate([pos_x+dx,front_rail_y-3.3,motor_x_axis_z])
+      translate([pos_x+dx,front_rail_y-motor_x_mount_standoff,motor_x_axis_z])
         rotate([-90,0,0]) m3_screw_reference(7);
     for (dy=[-motor_flange_dist/2,motor_flange_dist/2])
       translate([cy_x0+y_carriage_w,motor_y_axis_y+dy,motor_y_axis_z])

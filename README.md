@@ -151,7 +151,7 @@ Testes:
 - `94_Teste_Engrenamento_Dinamico.scad`: 17 amostras em um passo completo;
 - `95_Teste_Montagem_Completa.scad`: interfaces e colisões estruturais;
 - `96_Validacao_Curso.scad`: centro e quatro extremos para inspeção visual;
-- `97_Diagnostico_Motores.scad`: envelopes dos motores;
+- `97_Diagnostico_Motores.scad`: corpo, flange, ressalto e eixo dos motores;
 - `98_Teste_Interferencias.scad`: bolsos de pinhão e curso Z;
 - `99_Teste_Tolerancias.scad`: cupom físico de folgas.
 

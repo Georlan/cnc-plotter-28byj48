@@ -42,17 +42,22 @@ module rear_beam_key(z0=passive_saddle_h) {
 
 module carrinho_x_motriz() {
   motor_x_axis_z = rack_pitch_height + gear_pitch_radius + gear_mesh_clearance;
-  motor_face_y = -3.3;
+  motor_face_y = -motor_x_mount_standoff;
+  pinion_pocket_y0 = x_rack_center_y-pinion_thickness/2-0.2;
+  motor_passage_h = pinion_pocket_y0-motor_face_y+0.6;
 
   difference() {
     union() {
       cube([x_carriage_length,base_w,x_carriage_h]);
 
-      // Orelhas compactas: os dois furos ficam dentro dos 56 mm do carrinho.
-      for (hx=[x_carriage_length/2-motor_flange_dist/2,
-               x_carriage_length/2+motor_flange_dist/2])
-        translate([hx,motor_face_y,motor_x_axis_z])
-          rotate([-90,0,0]) cylinder(r=wall_screw,h=3.4);
+      // Ponte de montagem continua. Substitui duas orelhas visualmente
+      // desconectadas e distribui o aperto dos parafusos no corpo do carrinho.
+      hull()
+        for (hx=[x_carriage_length/2-motor_flange_dist/2,
+                 x_carriage_length/2+motor_flange_dist/2])
+          translate([hx,motor_face_y,motor_x_axis_z])
+            rotate([-90,0,0])
+              cylinder(r=wall_screw,h=motor_x_mount_standoff+0.1);
 
       front_beam_key();
     }
@@ -67,6 +72,22 @@ module carrinho_x_motriz() {
                x_rack_center_y-pinion_thickness/2-0.2,motor_x_axis_z])
       rotate([-90,0,0])
         cylinder(r=gear_outer_radius+0.35,h=pinion_thickness+0.4);
+
+    // Corredor coaxial do ressalto e do eixo do 28BYJ-48 ate o bolso do
+    // pinhao. O corpo do motor permanece totalmente fora da peca impressa.
+    translate([x_carriage_length/2,motor_face_y-EPS,motor_x_axis_z])
+      rotate([-90,0,0])
+        cylinder(r=motor_boss_r+motor_mount_clearance,
+                 h=motor_passage_h+EPS);
+
+    // A ponta do eixo D ultrapassa o bolso do pinhao em 0,70 mm. Um furo
+    // estreito continua ate o comprimento total da saida sem debilitar a
+    // ponte com o diametro maior do ressalto.
+    translate([x_carriage_length/2,motor_face_y-EPS,motor_x_axis_z])
+      rotate([-90,0,0])
+        cylinder(r=motor_shaft_r+motor_mount_clearance,
+                 h=motor_boss_h+motor_shaft_length+
+                   motor_mount_clearance+EPS);
 
     for (hx=[x_carriage_length/2-motor_flange_dist/2,
              x_carriage_length/2+motor_flange_dist/2])
