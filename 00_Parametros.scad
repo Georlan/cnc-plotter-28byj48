@@ -51,6 +51,9 @@ motor_shaft_r       = motor_shaft_diameter / 2; // 2.50mm
 // =============================================================================
 x_rail_length = 200.0;
 y_rail_length = 196.0;
+y_rail_width  = 28.0; // lado +X ampliado para separar rack e dovetail
+y_dovetail_center_x = 12.0;
+y_rack_center_x = 23.0;
 base_w        = 30.0;  // Largura da base X no eixo Y
 base_h        = 10.0;  // Altura estrutural da base X
 floor_h       = 3.0;   // Espessura do piso da base X
@@ -77,6 +80,7 @@ gear_tip_radius   = gear_pitch_radius + gear_addendum;  // ≈7.58mm
 gear_outer_radius = gear_tip_radius; // Raio externo REAL do STL
 
 gear_backlash   = 0.20;
+gear_mesh_clearance = 0.40; // afasta a ponta do pinhao da plataforma do rack
 rack_width      = 4.0;  // Largura transversal padrão da cremalheira
 pinion_thickness = 7.0;
 
@@ -109,10 +113,24 @@ z_carriage_w       = 13.0;
 z_carriage_d       = 13.0;
 z_carriage_body_h  = 22.0;
 z_axis_center_x    = 8.5;
-z_axis_center_y    = 11.0; // libera a placa frontal do motor Z; 3mm de eixo no pinhao
+z_axis_center_y    = 10.0; // separa gaiola Z do suporte frontal do motor
+z_collar_od        = 13.0;
+z_collar_h         = 4.0;
+z_cage_w           = 20.4;
+z_cage_d           = 13.0;
+// 3.8 mm deixa 0.1 mm de sobreposicao com o corpo de 13 mm em cada lado;
+// evita montantes apenas suspensos pela ponte superior no STL.
+z_post_w           = 3.8;
+z_cap_h            = 3.0;
+z_cap_bottom       = z_carriage_body_h + z_collar_h + spring_length - spring_preload;
 z_rack_start       = 17.0;
 z_rack_length      = active_z_travel + 8.0;
-z_motor_axis_x     = z_axis_center_x + z_carriage_w/2 + tooth_height/2 + gear_pitch_radius;
+// A base entra 0.2 mm no montante: une a cremalheira ao êmbolo sem levar
+// os dentes para dentro da gaiola. A folga extra mantém o pinhão afastado.
+z_rack_base_x      = z_cage_w/2 - 0.20;
+z_mesh_clearance   = 0.80;
+z_motor_axis_x     = z_axis_center_x + z_rack_base_x + tooth_height/2
+                     + gear_pitch_radius + z_mesh_clearance;
 z_motor_axis_z     = tooth_height/2 + gear_pitch_radius + 15.5; // separa os pinhoes Y/Z
 
 // Chaveta estrutural entre o carrinho X e o trilho Y.
@@ -122,6 +140,9 @@ y_mount_tongue_h = 6.0; // profundidade no carrinho X
 y_mount_upper_socket_h = 5.0;
 y_mount_key_h = y_mount_tongue_h + y_mount_upper_socket_h - 0.2;
 y_mount_boss_h = 8.0;
+y_mount_offset_y = 0.8; // separa a chaveta do pinhao X
+y_mount_screw_x = [5.0, 19.0]; // coordenadas locais no trilho Y
+y_mount_screw_y = 15.0;
 
 // =============================================================================
 // 7. ÁREA DE TRABALHO
@@ -137,9 +158,8 @@ Y_MAX = 138.0;
 Z_UP   = active_z_travel;
 Z_DOWN = 0.0;
 
-// O 28BYJ-48 usa furos a 35 mm. Com 44 mm, as orelhas do motor Y ficam
-// inteiramente dentro do comprimento do carrinho e nao invadem o motor Z.
-y_carriage_length = 44.0;
+// 52mm separam o pinhao Y da gaiola Z e ainda deixam 6mm no trilho em Y_MAX.
+y_carriage_length = 52.0;
 
 // =============================================================================
 // 8. OPÇÕES DE VISUALIZAÇÃO

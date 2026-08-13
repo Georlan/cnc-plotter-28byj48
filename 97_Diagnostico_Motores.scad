@@ -11,14 +11,14 @@ use <90_Componentes_Referencia.scad>;
 translate([500, 500, 0]) cube([1, 1, 1]);
 
 cx_y_offset = base_w/2 - 28/2;
-ty_y_origin = cx_y_offset + 28/2 - y_mount_tongue_d/2;
+ty_y_origin = cx_y_offset + 28/2 - y_mount_tongue_d/2 + y_mount_offset_y;
 ty_z_offset = base_h + 12;
-cy_x_offset = 12 - 32/2;
+cy_x_offset = y_dovetail_center_x - 32/2;
 
 module motor_x_body(px) {
   translate([px + 14,
              cx_y_offset + x_motor_face_y_local,
-             base_h + tooth_height/2 + gear_pitch_radius])
+             base_h + tooth_height/2 + gear_pitch_radius + gear_mesh_clearance])
     rotate([-90, 0, 0]) motor_28byj48_body_envelope();
 }
 
@@ -33,7 +33,7 @@ module carriage_x_world(px) {
 module motor_y_body_local(py) {
   translate([cy_x_offset + 32,
              py + y_carriage_length/2,
-             10 + tooth_height/2 + gear_pitch_radius])
+             10 + tooth_height/2 + gear_pitch_radius + gear_mesh_clearance])
     rotate([0, -90, 0]) motor_28byj48_body_envelope();
 }
 

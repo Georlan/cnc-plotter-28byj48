@@ -26,7 +26,7 @@ module carrinho_y() {
   dt_local_x = cy_width / 2;  // X=16
 
   // Motor Y: eixo horizontal em -X (face direita +X)
-  motor_y_z_local = tooth_height / 2 + gear_pitch_radius;  // ≈7.466mm
+  motor_y_z_local = tooth_height/2 + gear_pitch_radius + gear_mesh_clearance;
   motor_y_x_local = cy_width;
   hole_y_front     = cy_length/2 - motor_flange_dist/2;   // -3.5
   hole_y_back      = cy_length/2 + motor_flange_dist/2;    // 31.5
@@ -81,7 +81,7 @@ module carrinho_y() {
     }
 
     // ====== CANAL DOVETAIL FÊMEA Y (corte no fundo) ======
-    translate([dt_local_x, 0, 0])
+    translate([dt_local_x, 0, -0.5])
       dovetail_female_y(length=cy_length);
 
     // ====== FUROS M3 MOTOR Y ======
@@ -108,11 +108,20 @@ module carrinho_y() {
       cube([z_slot_w, z_slot_d, cy_height + EPS*2]);
 
     // ====== BOLSO DO PINHAO Y ======
-    // O rack Y esta em X=19 no trilho; o carrinho nasce 4mm a esquerda.
-    pinion_y_start_x = 19.0 - pinion_thickness/2 - (24.0/2 - cy_width/2) - 0.2;
+    pinion_y_start_x = y_rack_center_x - pinion_thickness/2
+                       - (y_dovetail_center_x - cy_width/2) - 0.2;
     translate([pinion_y_start_x, cy_length/2, motor_y_z_local])
       rotate([0, 90, 0])
         cylinder(r=gear_outer_radius + 0.35, h=pinion_thickness + 0.4);
+
+    // Canal longitudinal da cremalheira Y. O bolso circular acima libera o
+    // pinhao; este rasgo impede que o rack atravesse o fundo do carrinho.
+    rack_y_local_x = y_rack_center_x
+                     - (y_dovetail_center_x - cy_width/2);
+    translate([rack_y_local_x - (rack_width + 0.8)/2,
+               -EPS, -EPS])
+      cube([rack_width + 0.8, cy_length + EPS*2,
+            tooth_height + 0.6 + EPS]);
   }
 }
 

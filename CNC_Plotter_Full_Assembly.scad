@@ -34,6 +34,7 @@ module cnc_plotter_assembly(
   pos_y = 60,
   pos_z = Z_UP,
   show_motors = true,
+  show_fasteners = true,
   show_paper  = false,
   show_legacy = false,
   show_debug  = false,
@@ -46,7 +47,7 @@ module cnc_plotter_assembly(
   rack_x_y = x_rack_center_y; // Y=5, face frontal
 
   rack_x_pitch_z = base_h + tooth_height / 2;
-  motor_x_center_z = rack_x_pitch_z + gear_pitch_radius;
+  motor_x_center_z = rack_x_pitch_z + gear_pitch_radius + gear_mesh_clearance;
 
   cx_width = 28.0;
   cx_height = 12.0;
@@ -54,10 +55,10 @@ module cnc_plotter_assembly(
   cx_y_offset = dt_x_y - cx_dt_local_y;
 
   // Trilho Y
-  ry_rail_w = 24.0;
+  ry_rail_w = y_rail_width;
   ry_rail_h = 10.0;
-  ry_rack_x_local = ry_rail_w - 5.0;  // X=19 local
-  ry_dt_x_local   = ry_rail_w / 2;    // X=12 local
+  ry_rack_x_local = y_rack_center_x;
+  ry_dt_x_local   = y_dovetail_center_x;
 
   // =========================================================================
   // 1. BASE X (fixa na bancada)
@@ -91,18 +92,31 @@ module cnc_plotter_assembly(
         motor_28byj48_reference();
   }
 
+  if (show_fasteners)
+    for (sx = [-motor_flange_dist/2, motor_flange_dist/2])
+      translate([pos_x + cx_width/2 + sx,
+                 cx_y_offset + x_motor_face_y_local,
+                 motor_x_center_z])
+        rotate([-90, 0, 0]) m3_screw_reference(length=7);
+
   // =========================================================================
   // 5. TRILHO Y (fixo ao Carrinho X, perpendicular)
   // =========================================================================
-  ty_x_offset = pos_x + cx_width/2 - ry_rail_w/2;
-  ty_y_origin = cx_y_offset + cx_width/2 - y_mount_tongue_d/2;
+  ty_x_offset = pos_x + cx_width/2 - ry_dt_x_local;
+  ty_y_origin = cx_y_offset + cx_width/2 - y_mount_tongue_d/2
+                + y_mount_offset_y;
   ty_z_offset = base_h + cx_height + (exploded * 15);
 
   translate([ty_x_offset, ty_y_origin, ty_z_offset]) {
     trilho_y();
-    translate([ry_rail_w/2, y_mount_tongue_d/2,
+    translate([ry_dt_x_local, y_mount_tongue_d/2,
                -y_mount_tongue_h + 0.1])
       y_mount_key();
+
+    if (show_fasteners)
+      for (sx = y_mount_screw_x)
+        translate([sx, y_mount_screw_y, 0.5])
+          m3_screw_reference(length=17);
 
     // =========================================================================
     // 6. CARRINHO Y (desliza ao longo de Y no trilho Y)
@@ -119,7 +133,7 @@ module cnc_plotter_assembly(
     // 7. PINHÃO Y (mesha com a cremalheira Y do Trilho Y)
     // =========================================================================
     rack_y_pitch_z = ry_rail_h + tooth_height / 2;
-    motor_y_center_z = rack_y_pitch_z + gear_pitch_radius;
+    motor_y_center_z = rack_y_pitch_z + gear_pitch_radius + gear_mesh_clearance;
 
     color([1.0, 0.55, 0.1])
       translate([ry_rack_x_local - pinion_thickness/2,
@@ -136,8 +150,16 @@ module cnc_plotter_assembly(
                  pos_y + cy_length_local/2,
                  motor_y_center_z])
         rotate([0, -90, 0])
-          motor_28byj48_reference();
+          rotate([0, 0, 90])
+            motor_28byj48_reference();
     }
+
+    if (show_fasteners)
+      for (sy = [-motor_flange_dist/2, motor_flange_dist/2])
+        translate([cy_x_offset + cy_width_local,
+                   pos_y + cy_length_local/2 + sy,
+                   motor_y_center_z])
+          rotate([0, -90, 0]) m3_screw_reference(length=7);
 
     // =========================================================================
     // 9. MÓDULO Z + CANETA (desliza verticalmente em Z)
@@ -170,6 +192,11 @@ module cnc_plotter_assembly(
         rotate([-90, 0, 0])
           motor_28byj48_reference();
     }
+
+    if (show_fasteners)
+      for (sx = [-motor_flange_dist/2, motor_flange_dist/2])
+        translate([pz_x + sx, pos_y, pz_z])
+          rotate([-90, 0, 0]) m3_screw_reference(length=7);
   }
 
   // =========================================================================

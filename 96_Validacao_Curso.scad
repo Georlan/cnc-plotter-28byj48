@@ -15,4 +15,4 @@ positions = [
 
 p = positions[VALIDATION_POSITION];
 cnc_plotter_assembly(pos_x=p[0], pos_y=p[1], pos_z=p[2],
-                     show_motors=true, show_paper=true);
+                     show_motors=true, show_fasteners=true, show_paper=true);

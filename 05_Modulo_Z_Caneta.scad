@@ -18,15 +18,7 @@
 
 include <00_Parametros.scad>;
 
-z_collar_od = 13.0;
-z_collar_h  = 4.0;
-z_cage_w    = 20.4;
-z_cage_d    = 14.0;
-z_post_w    = 3.5;
-z_cap_h     = 3.0;
-z_cap_bottom = z_carriage_body_h + z_collar_h + spring_length - spring_preload;
-
-module modulo_z_pen_plunger() {
+module modulo_z_pen_plunger(include_rack=true) {
   pen_r = pen_diameter/2 + pen_clearance;
 
   difference() {
@@ -49,9 +41,11 @@ module modulo_z_pen_plunger() {
       translate([-z_cage_w/2, -z_cage_d/2, z_cap_bottom])
         cube([z_cage_w, z_cage_d, z_cap_h]);
 
-      // Rack Z no lado +X, com faixa suficiente para todo o curso ativo.
-      translate([z_carriage_w/2 - 0.5, 0, z_rack_start])
-        rack_z(length=z_rack_length, width=rack_width);
+      // Rack Z na face EXTERNA do montante +X. Na versao anterior ele ficava
+      // dentro do montante e o pinhao precisava atravessar a gaiola.
+      if (include_rack)
+        translate([z_rack_base_x, 0, z_rack_start])
+          rack_z(length=z_rack_length, width=rack_width);
     }
 
     // A caneta corre livre no corpo e atravessa a ponte superior.
@@ -98,12 +92,22 @@ module z_compression_spring_reference(compression=0) {
     }
 }
 
-module modulo_z_pen_assembly(compression=0) {
+// Referencia visual da caneta. A ponta fica em Z=-30mm: na montagem global,
+// Z_DOWN encosta no papel e Z_UP a eleva active_z_travel.
+module pen_reference(tip_z=-30, length=75) {
+  color([0.12, 0.12, 0.14]) {
+    translate([0, 0, tip_z + 3]) cylinder(r=pen_diameter/2, h=length - 3);
+    translate([0, 0, tip_z]) cylinder(r1=0.45, r2=pen_diameter/2, h=3);
+  }
+}
+
+module modulo_z_pen_assembly(compression=0, show_pen=true) {
   modulo_z_pen_plunger();
   translate([0, 0, z_carriage_body_h + compression])
     z_pen_collar();
   translate([0, 0, z_carriage_body_h + z_collar_h + compression])
     z_compression_spring_reference(compression=compression);
+  if (show_pen) pen_reference();
 }
 
 // Arquivo de impressao: carro e colar separados no leito.

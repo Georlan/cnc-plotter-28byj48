@@ -47,6 +47,13 @@ module motor_28byj48_reference() {
   }
 }
 
+module m3_screw_reference(length=8.0) {
+  color([0.72, 0.74, 0.78]) {
+    translate([0, 0, -length/2]) cylinder(r=1.45, h=length);
+    translate([0, 0, length/2 - 1.8]) cylinder(r=2.8, h=1.8);
+  }
+}
+
 module driver_uln2003_reference() {
   color([0.15, 0.35, 0.15])
     cube([35, 32, 1.6], center=false);

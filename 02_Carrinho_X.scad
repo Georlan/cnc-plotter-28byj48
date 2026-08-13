@@ -27,7 +27,7 @@ module carrinho_x() {
 
   // Motor X: corpo fora da face frontal (-Y), eixo apontando para +Y.
   // Isso elimina a colisao do corpo de 28.2mm com o inicio do trilho Y.
-  motor_z_local = (base_h + tooth_height / 2 + gear_pitch_radius) - base_h;
+  motor_z_local = tooth_height/2 + gear_pitch_radius + gear_mesh_clearance;
   // = tooth_height/2 + gear_pitch_radius ≈ 1.1 + 6.366 = 7.466mm
   motor_y_local = x_motor_face_y_local;
 
@@ -78,7 +78,9 @@ module carrinho_x() {
     }
 
     // ====== CANAL DOVETAIL FÊMEA (corte no fundo) ======
-    translate([0, dt_local_y, 0])
+    // O macho nasce 0.5mm dentro da plataforma do trilho; o corte acompanha
+    // esse embutimento para manter folga também nas faces inclinadas.
+    translate([0, dt_local_y, -0.5])
       dovetail_female_x(length=cx_length);
 
     // ====== FUROS M3 DE MONTAGEM DO MOTOR ======
@@ -97,10 +99,25 @@ module carrinho_x() {
       rotate([-90, 0, 0])
         cylinder(r=gear_outer_radius + 0.35, h=pinion_thickness + 0.4);
 
+    // Canal longitudinal para a cremalheira. Sem ele, os dentes de 2.2mm
+    // atravessavam o fundo do carrinho durante todo o curso X.
+    translate([-EPS, rack_axis_y_local - (rack_width + 0.8)/2, -EPS])
+      cube([cx_length + EPS*2, rack_width + 0.8,
+            tooth_height + 0.6 + EPS]);
+
     // ====== SOCKET PARA O TRILHO Y ======
     // Encaixe retangular no topo do carrinho (face Z+)
-    translate([cx_length/2 - socket_w/2, cx_width/2 - socket_d/2, cx_height - socket_h])
+    translate([cx_length/2 - socket_w/2,
+               cx_width/2 + y_mount_offset_y - socket_d/2,
+               cx_height - socket_h])
       cube([socket_w, socket_d, socket_h + EPS]);
+
+    // Dois parafusos M3 travam o trilho Y no carrinho. A chaveta posiciona;
+    // os parafusos impedem levantamento e torcao durante aceleracoes.
+    for (sx = y_mount_screw_x)
+      translate([sx + 2.0,
+                 y_mount_screw_y + 7.0 + y_mount_offset_y, -EPS])
+        cylinder(r=1.65, h=cx_height + EPS*2);
   }
 }
 

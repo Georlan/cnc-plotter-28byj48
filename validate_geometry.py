@@ -27,12 +27,18 @@ PIECES = [
     ('06_Pinhoes.scad',                  '06_Pinhoes.stl',                  3),
     ('07_Batentes.scad',                 '07_Batentes.stl',                 2),
     ('08_Clips_Fixacao_Papel.scad',      '08_Clips_Fixacao_Papel.stl',      4),
+    ('95_Teste_Montagem_Completa.scad',  '95_Teste_Montagem_Completa.stl',  1),
     ('97_Diagnostico_Motores.scad',      '97_Diagnostico_Motores.stl',      1),
     ('98_Teste_Interferencias.scad',     '98_Teste_Interferencias.stl',     1),
     ('99_Teste_Tolerancias.scad',        '99_Teste_Tolerancias.stl',       10),
     ('90_Componentes_Referencia.scad',   '90_Componentes_Referencia.stl',  -1),
     ('CNC_Plotter_Full_Assembly.scad',   'CNC_Plotter_Full_Assembly.stl',  -1),
 ]
+
+# O teste 95 combina dezenas de intersection() vazias. OpenSCAD 2021 pode
+# emitir aviso de 2-manifold durante a avaliacao, mesmo quando o STL final e
+# somente o cubo marcador valido. Warnings de codigo continuam proibidos.
+ALLOW_MANIFOLD_WARNING = {'95_Teste_Montagem_Completa.scad'}
 
 def compile_scad(scad_file, stl_file):
     """Compila SCAD -> STL, retorna (sucesso, warnings_list, stderr)."""
@@ -154,7 +160,7 @@ def main():
         ]
         
         # Para peças imprimíveis, exige 0 warnings totais (exceto deprecated)
-        if expected != -1:
+        if expected != -1 and scad not in ALLOW_MANIFOLD_WARNING:
             bad_warnings = [w for w in warnings if 'deprecated' not in w.lower()]
         else:
             # Para montagem/referência, ignora apenas export-warning de 2-manifold de conjunto multi-peça
