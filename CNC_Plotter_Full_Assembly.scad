@@ -49,6 +49,7 @@ module cnc_plotter_assembly(
   motor_x_center_z = rack_x_pitch_z + gear_pitch_radius;
 
   cx_width = 28.0;
+  cx_height = 12.0;
   cx_dt_local_y = cx_width / 2;
   cx_y_offset = dt_x_y - cx_dt_local_y;
 
@@ -73,16 +74,20 @@ module cnc_plotter_assembly(
   // 3. PINHÃO X (montado no eixo do motor X)
   // =========================================================================
   color([1.0, 0.55, 0.1])
-    translate([pos_x + cx_width/2, rack_x_y, motor_x_center_z + (exploded * 20)])
+    translate([pos_x + cx_width/2,
+               rack_x_y + pinion_thickness/2,
+               motor_x_center_z + (exploded * 20)])
       rotate([90, 0, 0])
-        pinion_gear(thickness=7.0);
+        pinion_gear(thickness=pinion_thickness);
 
   // =========================================================================
   // 4. MOTOR X (referência visual - montado na face traseira em +Y)
   // =========================================================================
   if (show_motors) {
-    translate([pos_x + cx_width/2, rack_x_y + 3.5 + (exploded * 15), motor_x_center_z])
-      rotate([-90, 0, 0])
+    translate([pos_x + cx_width/2,
+               cx_y_offset + cx_width + (exploded * 15),
+               motor_x_center_z])
+      rotate([90, 0, 0])
         motor_28byj48_reference();
   }
 
@@ -90,11 +95,14 @@ module cnc_plotter_assembly(
   // 5. TRILHO Y (fixo ao Carrinho X, perpendicular)
   // =========================================================================
   ty_x_offset = pos_x + cx_width/2 - ry_rail_w/2;
-  ty_y_origin = cx_y_offset + cx_width/2 - 5;
-  ty_z_offset = base_h + 12.0 + (exploded * 15);
+  ty_y_origin = cx_y_offset + cx_width/2 - y_mount_tongue_d/2;
+  ty_z_offset = base_h + cx_height + (exploded * 15);
 
   translate([ty_x_offset, ty_y_origin, ty_z_offset]) {
     trilho_y();
+    translate([ry_rail_w/2, y_mount_tongue_d/2,
+               -y_mount_tongue_h + 0.1])
+      y_mount_key();
 
     // =========================================================================
     // 6. CARRINHO Y (desliza ao longo de Y no trilho Y)
@@ -114,15 +122,19 @@ module cnc_plotter_assembly(
     motor_y_center_z = rack_y_pitch_z + gear_pitch_radius;
 
     color([1.0, 0.55, 0.1])
-      translate([ry_rack_x_local, pos_y + cy_length_local/2, motor_y_center_z + (exploded * 20)])
+      translate([ry_rack_x_local - pinion_thickness/2,
+                 pos_y + cy_length_local/2,
+                 motor_y_center_z + (exploded * 20)])
         rotate([0, 90, 0])
-          pinion_gear(thickness=7.0);
+          pinion_gear(thickness=pinion_thickness);
 
     // =========================================================================
     // 8. MOTOR Y (referência visual - montado na face direita em +X)
     // =========================================================================
     if (show_motors) {
-      translate([ry_rack_x_local + 5.0 + (exploded * 15), pos_y + cy_length_local/2, motor_y_center_z])
+      translate([cy_x_offset + cy_width_local + (exploded * 15),
+                 pos_y + cy_length_local/2,
+                 motor_y_center_z])
         rotate([0, -90, 0])
           motor_28byj48_reference();
     }
@@ -130,29 +142,32 @@ module cnc_plotter_assembly(
     // =========================================================================
     // 9. MÓDULO Z + CANETA (desliza verticalmente em Z)
     // =========================================================================
-    mz_x = cy_x_offset + 6.0;  // X=2
-    mz_y = pos_y + cy_length_local/2; // Y=pos_y + 14
-    mz_z = ry_rail_h + 14.0 + (exploded * 10);
+    mz_x = cy_x_offset + z_axis_center_x;
+    mz_y = pos_y + z_axis_center_y;
+    // O corpo do carro atravessa toda a guia. pos_z e altura de elevacao:
+    // 0 = caneta baixa; active_z_travel = caneta alta.
+    mz_z_down = ry_rail_h - 2.0;
+    mz_z = mz_z_down + pos_z + (exploded * 10);
 
-    translate([mz_x, mz_y, mz_z - pos_z])
-      modulo_z_pen_plunger();
+    translate([mz_x, mz_y, mz_z])
+      modulo_z_pen_assembly(compression=0);
 
     // =========================================================================
     // 10. PINHÃO Z E MOTOR Z (montado na face frontal em -Y, eixo horizontal)
     // =========================================================================
-    // Pinhão Z mesha com a cremalheira Z do êmbolo na face +X do êmbolo
-    pz_x = mz_x + 6.0 + tooth_height/2 + gear_pitch_radius; // ≈ 2 + 6 + 1.1 + 6.366 = 15.466
+    // Mesmas coordenadas derivadas usadas por 04_Carrinho_Y.scad.
+    pz_x = cy_x_offset + z_motor_axis_x;
     pz_y = mz_y;
-    pz_z = ry_rail_h + 18.0;
+    pz_z = ry_rail_h + z_motor_axis_z;
 
     color([1.0, 0.55, 0.1])
-      translate([pz_x, pos_y, pz_z + (exploded * 20)])
+      translate([pz_x, pz_y + pinion_thickness/2, pz_z + (exploded * 20)])
         rotate([90, 0, 0])
-          pinion_gear(thickness=7.0);
+          pinion_gear(thickness=pinion_thickness);
 
     if (show_motors) {
-      translate([pz_x, pos_y - 3.5 - (exploded * 15), pz_z])
-        rotate([90, 0, 0])
+      translate([pz_x, pos_y - (exploded * 15), pz_z])
+        rotate([-90, 0, 0])
           motor_28byj48_reference();
     }
   }

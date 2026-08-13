@@ -31,17 +31,17 @@ module carrinho_y() {
   hole_y_front     = cy_length/2 - motor_flange_dist/2;   // -3.5
   hole_y_back      = cy_length/2 + motor_flange_dist/2;    // 31.5
 
-  // Motor Z: eixo horizontal em +Y (face frontal -Y)
-  // Posicionado para o pinhão Z engrenar com a cremalheira Z do êmbolo
-  // Êmbolo centro em X=6, Y=cy_length/2. Rack Z no êmbolo fica em X ≈ 6 + 1.1 = 7.1mm
-  // Pinhão Z centro em X = 7.1 + 6.366 = 13.466mm
-  motor_z_x_local = 13.5;
-  motor_z_z_local = 18.0; // Altura do eixo Z
+  // Motor Z: coordenadas derivadas dos mesmos parametros usados na montagem.
+  // O eixo foi elevado para os volumes dos pinhoes Y e Z nao se cruzarem.
+  motor_z_x_local = z_motor_axis_x;
+  motor_z_z_local = z_motor_axis_z;
   hole_z_left     = motor_z_x_local - motor_flange_dist/2;  // -4.0
   hole_z_right    = motor_z_x_local + motor_flange_dist/2;  // 31.0
 
-  // Guia da caneta (furo passante vertical em X=6.0, Y=cy_length/2)
-  pen_bore_r = (pen_diameter + pen_clearance * 2) / 2;
+  // Guia retangular do carro Z: impede rotacao e deixa a caneta complacente
+  // deslizar dentro do carro, em vez de usar a caneta como guia estrutural.
+  z_slot_w = z_carriage_w + 2 * slide_clearance_z;
+  z_slot_d = z_carriage_d + 2 * slide_clearance_z;
 
   difference() {
     union() {
@@ -70,21 +70,20 @@ module carrinho_y() {
         }
 
         // ====== ORELHAS DE MONTAGEM DO MOTOR Z (face -Y) ======
-        // Orelha esquerda
+        // Cada placa desce ate o corpo; na versao anterior ambas flutuavam.
         hull() {
           translate([hole_z_left, 0, motor_z_z_local])
             rotate([-90, 0, 0])
               cylinder(r=wall_screw, h=3.0);
-          translate([0, 0, motor_z_z_local])
+          translate([hole_z_left, 0, cy_height - 1.0])
             rotate([-90, 0, 0])
               cylinder(r=wall_screw, h=3.0);
         }
-        // Orelha direita
         hull() {
           translate([hole_z_right, 0, motor_z_z_local])
             rotate([-90, 0, 0])
               cylinder(r=wall_screw, h=3.0);
-          translate([cy_width, 0, motor_z_z_local])
+          translate([cy_width - wall_screw/2, 0, cy_height - 1.0])
             rotate([-90, 0, 0])
               cylinder(r=wall_screw, h=3.0);
         }
@@ -113,9 +112,17 @@ module carrinho_y() {
       rotate([-90, 0, 0])
         cylinder(r=motor_flange_hole_r, h=20);
 
-    // ====== FURO PASSANTE PARA A CANETA (eixo vertical) ======
-    translate([6.0, cy_length/2, -EPS])
-      cylinder(r=pen_bore_r, h=cy_height + EPS*2);
+    // ====== GUIA PASSANTE DO CARRO Z ======
+    translate([z_axis_center_x - z_slot_w/2,
+               z_axis_center_y - z_slot_d/2, -EPS])
+      cube([z_slot_w, z_slot_d, cy_height + EPS*2]);
+
+    // ====== BOLSO DO PINHAO Y ======
+    // O rack Y esta em X=19 no trilho; o carrinho nasce 4mm a esquerda.
+    pinion_y_start_x = 19.0 - pinion_thickness/2 - (24.0/2 - cy_width/2) - 0.2;
+    translate([pinion_y_start_x, cy_length/2, motor_y_z_local])
+      rotate([0, 90, 0])
+        cylinder(r=gear_outer_radius + 0.35, h=pinion_thickness + 0.4);
   }
 }
 

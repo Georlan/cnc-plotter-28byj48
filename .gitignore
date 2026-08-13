@@ -6,3 +6,6 @@ freecad_parts/
 .DS_Store
 *.mp4
 *.pdf
+
+# Artefatos gerados: os arquivos OpenSCAD sao a fonte oficial.
+/*.stl

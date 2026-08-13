@@ -12,20 +12,22 @@ Compila cada SCAD -> STL via OpenSCAD CLI, depois analisa:
 """
 
 import subprocess, os, struct, sys, re
+from pathlib import Path
 
-CNC_DIR = '/home/testuser/Downloads/CNC'
+CNC_DIR = Path(__file__).resolve().parent
 
 # Peças a compilar e suas expectativas de componentes
 # expected = -1 indica arquivo de montagem/referência (não-imprimível isoladamente)
 PIECES = [
     ('01_Base_Trilho_X.scad',            '01_Base_Trilho_X.stl',            1),
     ('02_Carrinho_X.scad',               '02_Carrinho_X.stl',               1),
-    ('03_Trilho_Y.scad',                 '03_Trilho_Y.stl',                 1),
+    ('03_Trilho_Y.scad',                 '03_Trilho_Y.stl',                 2),
     ('04_Carrinho_Y.scad',               '04_Carrinho_Y.stl',               1),
-    ('05_Modulo_Z_Caneta.scad',          '05_Modulo_Z_Caneta.stl',          1),
+    ('05_Modulo_Z_Caneta.scad',          '05_Modulo_Z_Caneta.stl',          2),
     ('06_Pinhoes.scad',                  '06_Pinhoes.stl',                  3),
     ('07_Batentes.scad',                 '07_Batentes.stl',                 2),
     ('08_Clips_Fixacao_Papel.scad',      '08_Clips_Fixacao_Papel.stl',      4),
+    ('98_Teste_Interferencias.scad',     '98_Teste_Interferencias.stl',     1),
     ('99_Teste_Tolerancias.scad',        '99_Teste_Tolerancias.stl',       10),
     ('90_Componentes_Referencia.scad',   '90_Componentes_Referencia.stl',  -1),
     ('CNC_Plotter_Full_Assembly.scad',   'CNC_Plotter_Full_Assembly.stl',  -1),
@@ -33,10 +35,10 @@ PIECES = [
 
 def compile_scad(scad_file, stl_file):
     """Compila SCAD -> STL, retorna (sucesso, warnings_list, stderr)."""
-    scad_path = os.path.join(CNC_DIR, scad_file)
-    stl_path  = os.path.join(CNC_DIR, stl_file)
+    scad_path = CNC_DIR / scad_file
+    stl_path  = CNC_DIR / stl_file
     
-    cmd = ['openscad', '-o', stl_path, scad_path]
+    cmd = ['openscad', '-o', str(stl_path), str(scad_path)]
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
     
     stderr = result.stderr
@@ -141,7 +143,7 @@ def main():
             all_pass = False
             continue
         
-        stl_path = os.path.join(CNC_DIR, stl)
+        stl_path = CNC_DIR / stl
         num_comp, bbox_min, bbox_max = count_connected_components(stl_path)
         
         # Filtra apenas warnings graves de código (undef, unknown variable, undefined operation)

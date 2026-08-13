@@ -8,9 +8,9 @@
     - Nervura central sob dovetail_male_y + plataforma de transição
     - Nervura sob rack_y + plataforma
     - Dovetail e rack integrados com overlap de 0.5mm
-    - Tongue (língua) para encaixar no socket do Carrinho X (overlap de 0.5mm)
+    - Chaveta separada une dois sockets sem criar balanco na impressao
   
-  RESULTADO: 1 ÚNICO COMPONENTE CONECTADO no STL
+  RESULTADO: 2 componentes no STL (trilho + chaveta)
   
   Orientação de impressão: face traseira (back_plate) no leito, Z=0.
   =============================================================================
@@ -33,13 +33,14 @@ module trilho_y(length=y_rail_length) {
   rack_platform_w  = rack_width + 1.0;
   rack_platform_h  = 2.5;
 
-  tongue_w = 9.5;
-  tongue_d = 9.5;
-  tongue_h = 5.5;
+  tongue_w = y_mount_tongue_w;
+  tongue_d = y_mount_tongue_d;
+  tongue_h = y_mount_tongue_h;
 
-  union() {
-    // ====== ESTRUTURA PRINCIPAL ======
-    color([0.25, 0.28, 0.32]) {
+  difference() {
+    union() {
+      // ====== ESTRUTURA PRINCIPAL ======
+      color([0.25, 0.28, 0.32]) {
       cube([rail_w, length, back_h]);
       cube([wall_thin, length, rail_h]);
       translate([rail_w - wall_thin, 0, 0])
@@ -54,27 +55,40 @@ module trilho_y(length=y_rail_length) {
         cube([rack_platform_w, length, rack_platform_h + EPS]);
 
       // Nervuras transversais com altura até Z=6.5mm (sem criar bolsas internas fechadas)
-      for (cy = [30, length/2, length - 30]) {
+      for (cy = [20 : 40 : length - 20]) {
         translate([wall_thin, cy - wall_thin/2, back_h - EPS])
           cube([rail_w - 2*wall_thin, wall_thin, 3.5]);
       }
 
-      // Tongue (língua) para encaixe no Carrinho X (Y negativo) com overlap de 0.5mm no corpo
-      translate([rail_w/2 - tongue_w/2, -tongue_d, rail_h/2 - tongue_h/2])
-        cube([tongue_w, tongue_d + 0.5, tongue_h]);
+        // Boss local recebe a metade superior da chaveta.
+        translate([rail_w/2 - (tongue_w + 4.0)/2, 0, 0])
+          cube([tongue_w + 4.0, tongue_d + 4.0, y_mount_boss_h]);
+      }
+
+      // ====== GUIA DOVETAIL MACHO Y (overlap de 0.5mm com plataforma) ======
+      color([0.2, 0.6, 0.9])
+        translate([dt_x, 0, rail_h - 0.5])
+          dovetail_male_y(length=length);
+
+      // ====== CREMALHEIRA Y ======
+      color([0.95, 0.85, 0.15])
+        translate([rack_x, 0, rail_h])
+          rack_y(length=length);
     }
 
-    // ====== GUIA DOVETAIL MACHO Y (overlap de 0.5mm com plataforma) ======
-    color([0.2, 0.6, 0.9])
-      translate([dt_x, 0, rail_h - 0.5])
-        dovetail_male_y(length=length);
-
-    // ====== CREMALHEIRA Y ======
-    color([0.95, 0.85, 0.15])
-      translate([rack_x, 0, rail_h])
-        rack_y(length=length);
+    // Socket inferior do trilho: mantem Z minimo em zero e a face traseira plana.
+    translate([rail_w/2 - (tongue_w + 0.4)/2,
+               -(EPS), -EPS])
+      cube([tongue_w + 0.4, tongue_d + 0.4,
+            y_mount_upper_socket_h + EPS]);
   }
+}
+
+module y_mount_key() {
+  translate([-y_mount_tongue_w/2, -y_mount_tongue_d/2, 0])
+    cube([y_mount_tongue_w, y_mount_tongue_d, y_mount_key_h]);
 }
 
 // Renderização para impressão/exportação
 trilho_y();
+translate([35, 8, 0]) y_mount_key();

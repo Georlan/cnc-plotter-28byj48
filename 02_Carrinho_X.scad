@@ -28,7 +28,11 @@ module carrinho_x() {
   // O motor fica na face Y+ do carrinho
   motor_z_local = (base_h + tooth_height / 2 + gear_pitch_radius) - base_h;
   // = tooth_height/2 + gear_pitch_radius ≈ 1.1 + 6.366 = 7.466mm
-  motor_y_local = cx_width - 3.0;  // Perto da face +Y
+  motor_y_local = cx_width - 3.0;  // Plano das orelhas na face +Y
+
+  // Centro da cremalheira X expresso no sistema local do carrinho.
+  // A espessura do pinhao fica centrada nesta coordenada.
+  rack_axis_y_local = (base_w - 5.0) - (base_w/2 - cx_width/2);
 
   // Posição X dos furos de montagem do motor (35mm c/c)
   motor_cx = cx_length / 2; // Centro do carrinho em X
@@ -36,9 +40,9 @@ module carrinho_x() {
   hole_right_x = motor_cx + motor_flange_dist/2;  // 31.5
 
   // Socket para o trilho Y (abertura superior)
-  socket_w = 10.0;  // largura do encaixe em X
-  socket_d = 10.0;  // profundidade em Y
-  socket_h = 6.0;   // altura do encaixe em Z
+  socket_w = y_mount_tongue_w + 0.4;
+  socket_d = y_mount_tongue_d + 0.4;
+  socket_h = y_mount_tongue_h + 0.2;
 
   difference() {
     union() {
@@ -91,6 +95,12 @@ module carrinho_x() {
     translate([motor_cx, motor_y_local + 2.0, motor_z_local])
       rotate([-90, 0, 0])
         cylinder(r=motor_body_r + 0.5, h=motor_body_h + 5);
+
+    // ====== BOLSO DO PINHAO X ======
+    // Sem este volume o pinhao atravessava o corpo solido do carrinho.
+    translate([motor_cx, rack_axis_y_local + pinion_thickness/2 + 0.2, motor_z_local])
+      rotate([90, 0, 0])
+        cylinder(r=gear_outer_radius + 0.35, h=pinion_thickness + 0.4);
 
     // ====== SOCKET PARA O TRILHO Y ======
     // Encaixe retangular no topo do carrinho (face Z+)

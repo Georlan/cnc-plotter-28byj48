@@ -20,8 +20,8 @@ $fn = 50;
 // =============================================================================
 EPS = 0.01; // Overlap mínimo para uniões booleanas (evita coplanaridade)
 
-slide_clearance_xy = 0.25; // Folga por lado nos eixos X/Y (mm)
-slide_clearance_z  = 0.20; // Folga por lado no eixo Z (mm)
+slide_clearance_xy = 0.25; // Folga por lado nos eixos X/Y (validar no cupom 99)
+slide_clearance_z  = 0.20; // Folga por lado no carro Z retangular
 pressfit_clearance = 0.15; // Folga para prensagem justa (mm)
 shaft_clearance    = 0.10; // Folga do eixo D do motor (mm)
 
@@ -76,6 +76,7 @@ gear_outer_radius = gear_tip_radius; // Raio externo REAL do STL
 
 gear_backlash   = 0.20;
 rack_width      = 4.0;  // Largura transversal padrão da cremalheira
+pinion_thickness = 7.0;
 
 // Largura tangencial dos dentes do pinhão (no pitch circle ≈ pitch/2 - backlash)
 pinion_tooth_width_pitch = rack_pitch / 2 - gear_backlash; // 1.80mm
@@ -94,8 +95,31 @@ active_z_travel   = 6.0;
 compliance_travel = 3.0;
 pen_diameter      = 10.0;
 pen_clearance     = 0.25;
-spring_outer_diameter = 8.5;
+// A mola envolve a caneta; portanto seu DI deve ser maior que pen_diameter.
+spring_inner_diameter = 10.8;
+spring_outer_diameter = 13.0;
 spring_length         = 14.0;
+spring_rate_target    = 0.20; // N/mm; alvo para 0.2 N de pre-carga e 0.8 N no fim
+spring_preload        = 1.0;  // compressao inicial em mm
+
+// Carro Z anti-rotacao e coordenadas compartilhadas com carrinho/montagem.
+z_carriage_w       = 13.0;
+z_carriage_d       = 13.0;
+z_carriage_body_h  = 22.0;
+z_axis_center_x    = 8.5;
+z_axis_center_y    = 11.0; // libera a placa frontal do motor Z; 3mm de eixo no pinhao
+z_rack_start       = 17.0;
+z_rack_length      = active_z_travel + 8.0;
+z_motor_axis_x     = z_axis_center_x + z_carriage_w/2 + tooth_height/2 + gear_pitch_radius;
+z_motor_axis_z     = tooth_height/2 + gear_pitch_radius + 15.5; // separa os pinhoes Y/Z
+
+// Chaveta estrutural entre o carrinho X e o trilho Y.
+y_mount_tongue_w = 18.0;
+y_mount_tongue_d = 14.0;
+y_mount_tongue_h = 6.0; // profundidade no carrinho X
+y_mount_upper_socket_h = 5.0;
+y_mount_key_h = y_mount_tongue_h + y_mount_upper_socket_h - 0.2;
+y_mount_boss_h = 8.0;
 
 // =============================================================================
 // 7. ÁREA DE TRABALHO
@@ -249,10 +273,11 @@ module rack_z(length, pitch=rack_pitch, height=tooth_height, width=rack_width) {
 // PINHÃO
 // =============================================================================
 
-module pinion_gear(teeth=gear_teeth, pitch=rack_pitch, thickness=7.0) {
+module pinion_gear(teeth=gear_teeth, pitch=rack_pitch, thickness=pinion_thickness) {
   r_pitch = (teeth * pitch) / (2 * PI);
   r_root  = r_pitch - gear_dedendum;
   r_tip   = r_pitch + gear_addendum;
+  tooth_root_r = r_root - 0.25; // overlap radial evita uniao apenas coplanar
 
   tw_root = pinion_tooth_width_pitch * 1.35;
   tw_tip  = pinion_tooth_width_pitch * 0.65;
@@ -264,10 +289,10 @@ module pinion_gear(teeth=gear_teeth, pitch=rack_pitch, thickness=7.0) {
         rotate([0, 0, i * (360 / teeth)])
           linear_extrude(height=thickness)
             polygon(points=[
-              [r_root,  -tw_root/2],
+              [tooth_root_r,  -tw_root/2],
               [r_tip,   -tw_tip/2],
               [r_tip,    tw_tip/2],
-              [r_root,   tw_root/2]
+              [tooth_root_r,   tw_root/2]
             ]);
       }
     }
