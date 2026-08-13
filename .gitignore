@@ -1,0 +1,8 @@
+*.FCStd
+*.step
+*.FCBak
+__pycache__/
+freecad_parts/
+.DS_Store
+*.mp4
+*.pdf

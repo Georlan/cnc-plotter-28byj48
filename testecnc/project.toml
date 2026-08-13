@@ -1,0 +1,8 @@
+title = "testecnc"
+default_file = "main.kcl"
+
+[settings.app]
+[settings.meta]
+id = "719d58c3-1d96-45a1-b3b7-f77cef7493ce"
+
+[settings.modeling]

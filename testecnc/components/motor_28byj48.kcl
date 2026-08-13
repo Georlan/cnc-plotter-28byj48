@@ -1,0 +1,24 @@
+@settings(
+  kclVersion = 2.0,
+  defaultLengthUnit = mm
+)
+
+// =============================================================================
+// MOTOR PASSO 28BYJ-48 (90_Componentes_Referencia.kcl)
+// =============================================================================
+
+import motorBodyDia, motorBodyH, motorMountSpacing from "parameters.kcl"
+
+// Corpo Principal Cilíndrico do Motor 28BYJ-48
+export motorBody = startSketchOn(XY)
+  |> circle(center = [0, 0], radius = motorBodyDia / 2)
+  |> extrude(length = motorBodyH)
+
+// Aba de Montagem (Flange com furos)
+export motorFlange = startSketchOn(XY)
+  |> startProfile(at = [-motorMountSpacing / 2, -2.0])
+  |> line(end = [motorMountSpacing, 0])
+  |> line(end = [0, 4.0])
+  |> line(end = [-motorMountSpacing, 0])
+  |> close()
+  |> extrude(length = motorBodyH)

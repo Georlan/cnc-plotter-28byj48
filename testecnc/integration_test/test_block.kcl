@@ -1,0 +1,24 @@
+@settings(kclVersion = 2.0)
+
+// =============================================================================
+// INTEGRATION TEST - PARAMETRIC BLOCK WITH HOLE
+// =============================================================================
+
+testLength = 40.0
+testWidth = 20.0
+testHeight = 5.0
+holeDiameter = 4.0
+
+// Base Block
+blockBody = startSketchOn(XY)
+  |> startProfile(at = [0, 0])
+  |> line(end = [testLength, 0])
+  |> line(end = [0, testWidth])
+  |> line(end = [-testLength, 0])
+  |> close()
+  |> extrude(length = testHeight)
+
+// Pass-through Hole
+holeCut = startSketchOn(XY)
+  |> circle(center = [testLength / 2, testWidth / 2], radius = holeDiameter / 2)
+  |> extrude(length = testHeight)

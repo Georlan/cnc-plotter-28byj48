@@ -1,0 +1,20 @@
+@settings(
+  kclVersion = 2.0,
+  defaultLengthUnit = mm
+)
+
+// =============================================================================
+// CARRINHO Y (04_Carrinho_Y.kcl)
+// =============================================================================
+
+cyWidth  = 32.0
+cyLength = 28.0
+
+// Bloco Principal do Carrinho Y
+export carriageYBody = startSketchOn(XY)
+  |> startProfile(at = [0, 0])
+  |> line(end = [cyWidth, 0])
+  |> line(end = [0, cyLength])
+  |> line(end = [-cyWidth, 0])
+  |> close()
+  |> extrude(length = 14.0)

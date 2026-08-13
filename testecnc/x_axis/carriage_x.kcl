@@ -1,0 +1,22 @@
+@settings(
+  kclVersion = 2.0,
+  defaultLengthUnit = mm
+)
+
+// =============================================================================
+// CARRINHO X (02_Carrinho_X.kcl)
+// =============================================================================
+
+import baseHeight, dovetailH from "parameters.kcl"
+
+cxWidth  = 28.0
+cxLength = 32.0
+
+// Bloco Principal do Carrinho X
+export carriageXBody = startSketchOn(XY)
+  |> startProfile(at = [0, 0])
+  |> line(end = [cxWidth, 0])
+  |> line(end = [0, cxLength])
+  |> line(end = [-cxWidth, 0])
+  |> close()
+  |> extrude(length = dovetailH + 13.0)

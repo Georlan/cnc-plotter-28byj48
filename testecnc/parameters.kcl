@@ -1,0 +1,55 @@
+@settings(
+  kclVersion = 2.0,
+  defaultLengthUnit = mm
+)
+
+// =============================================================================
+// PARÂMETROS GLOBAIS DA CNC PLOTTER - CALIBRADOS PARA BAMBU LAB A1
+// =============================================================================
+
+// --- TOLERÂNCIAS E FOLGAS (Bambu Lab A1 High Precision) ---
+export slideClearance  = 0.18  // Folga de deslize justo para Bambu A1 (mm)
+export pressfitClearance = 0.10  // Folga para encaixe sob pressão (mm)
+export m3HolePass     = 3.20  // Furo passante M3 (mm)
+export m3HoleThread   = 2.80  // Furo para rosca M3 em PLA (mm)
+export m4HolePass     = 4.30  // Furo passante M4 (mm)
+
+// --- ESTRUTURA E EIXOS ---
+export xRailLength = 200.0
+export yRailLength = 196.0
+export baseWidth   = 30.0
+export baseHeight  = 10.0
+export floorHeight = 3.0
+export wallThin    = 2.4
+export wallStruct  = 2.8
+
+// --- GUIAS DOVETAIL (RABO DE ANDORINHA) ---
+export dovetailH       = 4.50
+export dovetailWBottom = 9.50
+export dovetailWTop    = 13.00
+
+// --- TRANSMISSÃO (RACK & PINION) ---
+export rackPitch        = 4.00
+export toothHeight      = 2.20
+export rackWidth        = 4.00
+export gearTeeth        = 10
+export gearPitchRadius  = 6.366
+export gearOuterRadius  = 7.580
+export gearThickness    = 7.00
+export gearBacklash     = 0.15
+
+// --- MOTOR 28BYJ-48 ---
+export motorBodyDia      = 28.20
+export motorBodyH        = 19.00
+export motorMountSpacing = 35.00
+export motorShaftDia     = 5.00
+export motorShaftFlat    = 3.00
+export motorShaftLength  = 9.00
+
+// --- EIXO Z & CANETA ---
+export penDiameter = 10.00
+export zTravel     = 6.00
+
+// --- POSICIONAMENTO CINEMÁTICO ---
+export posX = 80.0
+export posY = 60.0

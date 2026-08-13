@@ -1,0 +1,28 @@
+@settings(
+  kclVersion = 2.0,
+  defaultLengthUnit = mm
+)
+
+// =============================================================================
+// TRILHO Y (03_Trilho_Y.kcl)
+// =============================================================================
+
+import yRailLength from "parameters.kcl"
+
+// Corpinho Estrutural do Trilho Y
+export railYBody = startSketchOn(XY)
+  |> startProfile(at = [0, 0])
+  |> line(end = [24.0, 0])
+  |> line(end = [0, yRailLength])
+  |> line(end = [-24.0, 0])
+  |> close()
+  |> extrude(length = 10.0)
+
+// Cremalheira Integrada Y (Rack Y)
+export rackY = startSketchOn(XY)
+  |> startProfile(at = [18.0, 0])
+  |> line(end = [4.0, 0])
+  |> line(end = [0, yRailLength])
+  |> line(end = [-4.0, 0])
+  |> close()
+  |> extrude(length = 12.2)

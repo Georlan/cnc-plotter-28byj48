@@ -1,0 +1,55 @@
+@settings(
+  kclVersion = 2.0,
+  defaultLengthUnit = mm
+)
+
+// =============================================================================
+// TRILHO BASE X (01_Base_Trilho_X.kcl)
+// =============================================================================
+
+import xRailLength, baseWidth, baseHeight, floorHeight, wallThin, dovetailH from "parameters.kcl"
+
+// Piso Principal da Base X
+export baseFloor = startSketchOn(XY)
+  |> startProfile(at = [0, 0])
+  |> line(end = [xRailLength, 0])
+  |> line(end = [0, baseWidth])
+  |> line(end = [-xRailLength, 0])
+  |> close()
+  |> extrude(length = floorHeight)
+
+// Parede Traseira
+export wallBack = startSketchOn(XY)
+  |> startProfile(at = [0, 0])
+  |> line(end = [xRailLength, 0])
+  |> line(end = [0, wallThin])
+  |> line(end = [-xRailLength, 0])
+  |> close()
+  |> extrude(length = baseHeight)
+
+// Parede Frontal
+export wallFront = startSketchOn(XY)
+  |> startProfile(at = [0, baseWidth - wallThin])
+  |> line(end = [xRailLength, 0])
+  |> line(end = [0, wallThin])
+  |> line(end = [-xRailLength, 0])
+  |> close()
+  |> extrude(length = baseHeight)
+
+// Guia Central Dovetail X
+export dovetailGuide = startSketchOn(XY)
+  |> startProfile(at = [0, baseWidth / 2 - 5.0])
+  |> line(end = [xRailLength, 0])
+  |> line(end = [0, 10.0])
+  |> line(end = [-xRailLength, 0])
+  |> close()
+  |> extrude(length = baseHeight + dovetailH)
+
+// Cremalheira Integrada X (Rack X)
+export rackX = startSketchOn(XY)
+  |> startProfile(at = [0, baseWidth - 5.0])
+  |> line(end = [xRailLength, 0])
+  |> line(end = [0, 4.0])
+  |> line(end = [-xRailLength, 0])
+  |> close()
+  |> extrude(length = baseHeight + 2.2)

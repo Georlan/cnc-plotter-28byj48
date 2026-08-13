@@ -1,0 +1,86 @@
+@settings(
+  kclVersion = 2.0,
+  defaultLengthUnit = mm
+)
+
+// =============================================================================
+// PEÇA 1: TRILHO BASE FIXO X (01_Base_Trilho_X.kcl)
+// CALIBRADA PARA BAMBU LAB A1 (256x256mm Build Volume)
+// =============================================================================
+
+import xRailLength, baseWidth, baseHeight, floorHeight, wallStruct, dovetailH, dovetailWBottom, dovetailWTop, m4HolePass from "parameters.kcl"
+
+dtY   = baseWidth / 2.0  // Y=15.0mm (Eixo Central do Dovetail)
+rackY = baseWidth - 5.0  // Y=25.0mm (Eixo Central da Cremalheira)
+
+// 1. Piso Estrutural Contínuo (3.0mm de espessura para rigidez perfeita)
+export baseFloor = startSketchOn(XY)
+  |> startProfile(at = [0, 0])
+  |> line(end = [xRailLength, 0])
+  |> line(end = [0, baseWidth])
+  |> line(end = [-xRailLength, 0])
+  |> close()
+  |> extrude(length = floorHeight)
+
+// 2. Parede Estrutural Traseira (Y=0 a 2.8mm)
+export wallBack = startSketchOn(XY)
+  |> startProfile(at = [0, 0])
+  |> line(end = [xRailLength, 0])
+  |> line(end = [0, wallStruct])
+  |> line(end = [-xRailLength, 0])
+  |> close()
+  |> extrude(length = baseHeight)
+
+// 3. Parede Estrutural Frontal (Y=27.2 a 30.0mm)
+export wallFront = startSketchOn(XY)
+  |> startProfile(at = [0, baseWidth - wallStruct])
+  |> line(end = [xRailLength, 0])
+  |> line(end = [0, wallStruct])
+  |> line(end = [-xRailLength, 0])
+  |> close()
+  |> extrude(length = baseHeight)
+
+// 4. Nervura Central Estrutural Sob o Dovetail (Y=13.6 a 16.4mm)
+export ribCenter = startSketchOn(XY)
+  |> startProfile(at = [0, dtY - wallStruct / 2.0])
+  |> line(end = [xRailLength, 0])
+  |> line(end = [0, wallStruct])
+  |> line(end = [-xRailLength, 0])
+  |> close()
+  |> extrude(length = baseHeight)
+
+// 5. GUIA DOVETAIL MACHO (Rabo de Andorinha com fusão sólida a Z=9.5mm)
+// Largura base = 9.5mm, Topo = 13.0mm, Altura = 4.5mm
+dtPlane = offsetPlane(XY, offset = baseHeight - 0.5)
+
+export dovetailGuide = startSketchOn(dtPlane)
+  |> startProfile(at = [0, dtY - dovetailWBottom / 2.0])
+  |> line(end = [xRailLength, 0])
+  |> line(end = [0, dovetailWBottom])
+  |> line(end = [-xRailLength, 0])
+  |> close()
+  |> extrude(length = dovetailH + 0.5)
+
+// 6. CREMALHEIRA X (Rack X com base contínua de fusão a Z=10.0mm)
+rackPlane = offsetPlane(XY, offset = baseHeight)
+
+export rackX = startSketchOn(rackPlane)
+  |> startProfile(at = [0, rackY - 2.0])
+  |> line(end = [xRailLength, 0])
+  |> line(end = [0, 4.0])
+  |> line(end = [-xRailLength, 0])
+  |> close()
+  |> extrude(length = 2.2)
+
+// 7. Furos M4 Passantes para Fixação na Bancada (X=20mm, 100mm, 180mm)
+export m4Hole1 = startSketchOn(XY)
+  |> circle(center = [20.0, 7.0], radius = m4HolePass / 2.0)
+  |> extrude(length = floorHeight)
+
+export m4Hole2 = startSketchOn(XY)
+  |> circle(center = [100.0, 7.0], radius = m4HolePass / 2.0)
+  |> extrude(length = floorHeight)
+
+export m4Hole3 = startSketchOn(XY)
+  |> circle(center = [180.0, 7.0], radius = m4HolePass / 2.0)
+  |> extrude(length = floorHeight)

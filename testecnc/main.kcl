@@ -1,0 +1,16 @@
+@settings(
+  kclVersion = 2.0,
+  defaultLengthUnit = mm
+)
+
+// =============================================================================
+// PROJETO CNC PLOTTER 28BYJ-48 - MONTAGEM MODULAR LIMPA
+// =============================================================================
+
+import baseFloor, wallBack, wallFront, dovetailGuide, rackX from "base_x.kcl"
+import carriageXBody from "carriage_x.kcl"
+import railYBody, rackY from "rail_y.kcl"
+import carriageYBody from "carriage_y.kcl"
+import penPlungerHolder, penBody from "pen_z.kcl"
+import pinionGear from "pinion.kcl"
+import motorBody, motorFlange from "motor_28byj48.kcl"

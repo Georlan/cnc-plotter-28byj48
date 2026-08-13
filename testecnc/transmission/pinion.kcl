@@ -1,0 +1,15 @@
+@settings(
+  kclVersion = 2.0,
+  defaultLengthUnit = mm
+)
+
+// =============================================================================
+// PINHÃO DE TRANSMISSÃO (06_Pinhoes.kcl)
+// =============================================================================
+
+import gearOuterRadius, gearThickness from "parameters.kcl"
+
+// Pinhão de 10 dentes
+export pinionGear = startSketchOn(XY)
+  |> circle(center = [0, 0], radius = gearOuterRadius)
+  |> extrude(length = gearThickness)

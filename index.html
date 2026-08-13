@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CNC PCB Commander - Plotter Control Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0d14;
+      --panel-bg: rgba(18, 24, 38, 0.85);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #00f2fe;
+      --accent-purple: #7f00ff;
+      --accent-green: #00e676;
+      --accent-red: #ff1744;
+      --accent-gold: #ffb300;
+      --text-main: #f0f4f8;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(0, 242, 254, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(127, 0, 255, 0.08) 0%, transparent 40%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--panel-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #fff;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--panel-border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #718096;
+      box-shadow: 0 0 8px #718096;
+    }
+
+    .status-dot.connected {
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+    }
+
+    .status-dot.running {
+      background: var(--accent-cyan);
+      box-shadow: 0 0 10px var(--accent-cyan);
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 1.5rem;
+      padding: 1.5rem 2rem;
+      flex: 1;
+      max-width: 1650px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 0.75rem;
+    }
+
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .canvas-container {
+      position: relative;
+      flex: 1;
+      min-height: 450px;
+      background: #06080e;
+      border-radius: 12px;
+      border: 1px solid var(--panel-border);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .canvas-controls {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent-cyan);
+    }
+
+    .jog-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      max-width: 240px;
+      margin: 0 auto;
+    }
+
+    .btn-jog {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--panel-border);
+      color: var(--text-main);
+      height: 48px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-jog:hover {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(127, 0, 255, 0.2));
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+    }
+
+    .step-selector {
+      display: flex;
+      gap: 0.35rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.25rem;
+      border-radius: 10px;
+      border: 1px solid var(--panel-border);
+    }
+
+    .step-btn {
+      flex: 1;
+      padding: 0.4rem 0.2rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .step-btn.active {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    .step-btn-z {
+      flex: 1;
+      padding: 0.4rem 0.2rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .step-btn-z.active {
+      background: var(--accent-gold);
+      color: #000;
+    }
+
+    .file-dropzone {
+      border: 2px dashed var(--panel-border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .file-dropzone:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 242, 254, 0.03);
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 0.85rem;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.25s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ff1744, #d50000);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid var(--panel-border);
+    }
+
+    .btn-gold {
+      background: rgba(255, 179, 0, 0.15);
+      color: var(--accent-gold);
+      border: 1px solid rgba(255, 179, 0, 0.3);
+    }
+
+    .btn-gold:hover {
+      background: rgba(255, 179, 0, 0.3);
+      border-color: var(--accent-gold);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green));
+      transition: width 0.3s ease;
+    }
+
+    .coords-display {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.75rem;
+      border-radius: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      text-align: center;
+    }
+
+    .coord-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    .coord-lbl {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <div class="brand-title">CNC PCB Commander</div>
+        <div class="brand-subtitle">Plotter & Micro-Step Z Precision Panel</div>
+      </div>
+    </div>
+
+    <div class="status-badge">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Desconectado</span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- PAINEL ESQUERDO: VISUALIZADOR 2D -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>📐 Visualizador G-Code (Preview 2D)</span>
+        </div>
+        <div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--text-muted);" id="fileStats">Nenhum arquivo carregado</div>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="gcodeCanvas"></canvas>
+        <div class="canvas-controls">
+          <button class="btn-icon" id="btnZoomIn" title="Zoom In">+</button>
+          <button class="btn-icon" id="btnZoomOut" title="Zoom Out">-</button>
+          <button class="btn-icon" id="btnResetView" title="Reset Vista">⟲</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+          <span id="progressText">Progresso: 0%</span>
+          <span id="lineCounterText" style="font-family: 'JetBrains Mono';">Linha 0 / 0</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+        <button class="action-btn btn-primary" id="btnStartPlot">🚀 Iniciar Desenho</button>
+        <button class="action-btn btn-danger" id="btnStopPlot">🛑 PARAR EMERGÊNCIA</button>
+      </div>
+    </div>
+
+    <!-- PAINEL DIREITO: JOGGING & CONTROLE PRECISO DO EIXO Z -->
+    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+
+      <!-- COORDENADAS & JOG X/Y -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🕹️ Movimento X e Y</div>
+        </div>
+
+        <div class="coords-display">
+          <div>
+            <div class="coord-lbl">X (mm)</div>
+            <div class="coord-val" id="valX">0.00</div>
+          </div>
+          <div>
+            <div class="coord-lbl">Y (mm)</div>
+            <div class="coord-val" id="valY">0.00</div>
+          </div>
+          <div>
+            <div class="coord-lbl">Z (mm)</div>
+            <div class="coord-val" id="valZ" style="color: var(--accent-gold);">0.00</div>
+          </div>
+        </div>
+
+        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Passo para X e Y:</div>
+        <div class="step-selector">
+          <button class="step-btn" data-step="0.1">0.1mm</button>
+          <button class="step-btn active" data-step="1.0">1.0mm</button>
+          <button class="step-btn" data-step="5.0">5.0mm</button>
+          <button class="step-btn" data-step="10.0">10.0mm</button>
+          <button class="step-btn" data-step="20.0">20.0mm</button>
+        </div>
+
+        <div class="jog-grid">
+          <div></div>
+          <button class="btn-jog" id="jogYPlus">Y+</button>
+          <div></div>
+          <button class="btn-jog" id="jogXMinus">X-</button>
+          <button class="btn-jog" style="background: rgba(0,242,254,0.1);" id="btnZero">Zerar (0,0)</button>
+          <button class="btn-jog" id="jogXPlus">X+</button>
+          <div></div>
+          <button class="btn-jog" id="jogYMinus">Y-</button>
+          <div></div>
+        </div>
+      </div>
+
+      <!-- CONTROLE DE PRECISÃO FINA DO EIXO Z -->
+      <div class="panel" style="border-color: rgba(255, 179, 0, 0.3);">
+        <div class="panel-header">
+          <div class="panel-title" style="color: var(--accent-gold);">
+            <span>🔍 Controle Micrométrico do Eixo Z (Caneta)</span>
+          </div>
+        </div>
+
+        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Passo Fino para Z:</div>
+        <div class="step-selector">
+          <button class="step-btn-z" data-stepz="0.05">0.05mm</button>
+          <button class="step-btn-z active" data-stepz="0.1">0.10mm</button>
+          <button class="step-btn-z" data-stepz="0.25">0.25mm</button>
+          <button class="step-btn-z" data-stepz="0.5">0.50mm</button>
+          <button class="step-btn-z" data-stepz="1.0">1.00mm</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <button class="action-btn btn-gold" id="btnZUp">⬆️ Subir Z (Fino)</button>
+          <button class="action-btn btn-gold" id="btnZDown">⬇️ Baixar Z (Fino)</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.25rem;">
+          <button class="action-btn btn-secondary" id="btnPenUp">✏️ Caneta no Alto (Z+1.5)</button>
+          <button class="action-btn btn-secondary" id="btnPenDown">✍️ Caneta no Papel (Z-0.5)</button>
+        </div>
+      </div>
+
+      <!-- ARQUIVO G-CODE -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">📂 Carregar Desenho G-Code</div>
+        </div>
+
+        <div class="file-dropzone" id="dropzone">
+          <div style="font-size: 1.5rem; margin-bottom: 0.25rem;">📄</div>
+          <div style="font-size: 0.8rem; font-weight: 600;">Arraste o arquivo .ngc / .gcode aqui</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted);">ou clique para escolher</div>
+          <input type="file" id="fileInput" accept=".ngc,.gcode,.nc,.tap" style="display: none;">
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let ws;
+    let selectedStepXY = 1.0;
+    let selectedStepZ = 0.10;
+    let loadedGCode = [];
+    let canvas, ctx;
+    let scale = 5.0;
+    let offsetX = 50, offsetY = 350;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initCanvas();
+      connectWS();
+      setupEvents();
+    });
+
+    function initCanvas() {
+      canvas = document.getElementById('gcodeCanvas');
+      ctx = canvas.getContext('2d');
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+    }
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      drawGrid();
+      if (loadedGCode.length > 0) renderGCode(loadedGCode);
+    }
+
+    function drawGrid() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.lineWidth = 1;
+
+      const gridSize = 20 * scale;
+      for (let x = offsetX % gridSize; x < canvas.width; x += gridSize) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = offsetY % gridSize; y < canvas.height; y += gridSize) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      ctx.strokeStyle = '#00f2fe';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(offsetX, offsetY, 5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    function renderGCode(lines) {
+      drawGrid();
+      let curX = 0, curY = 0, penDown = false;
+
+      lines.forEach(line => {
+        line = line.trim();
+        if (line.startsWith('G0') || line.startsWith('G00') || line.startsWith('G1') || line.startsWith('G01')) {
+          let nextX = parseCoord(line, 'X', curX);
+          let nextY = parseCoord(line, 'Y', curY);
+          let nextZ = parseCoord(line, 'Z', null);
+
+          if (nextZ !== null) penDown = nextZ < 0;
+
+          ctx.beginPath();
+          ctx.moveTo(offsetX + curX * scale, offsetY - curY * scale);
+          ctx.lineTo(offsetX + nextX * scale, offsetY - nextY * scale);
+
+          if (penDown) {
+            ctx.strokeStyle = '#00e676';
+            ctx.lineWidth = 2;
+          } else {
+            ctx.strokeStyle = 'rgba(255, 23, 68, 0.3)';
+            ctx.lineWidth = 1;
+          }
+          ctx.stroke();
+
+          curX = nextX;
+          curY = nextY;
+        }
+      });
+    }
+
+    function parseCoord(line, char, def) {
+      let idx = line.indexOf(char);
+      if (idx === -1) return def;
+      let sub = line.substring(idx + 1).split(' ')[0];
+      return parseFloat(sub);
+    }
+
+    function connectWS() {
+      ws = new WebSocket('ws://' + window.location.hostname + ':8081');
+
+      ws.onopen = () => {
+        document.getElementById('statusDot').className = 'status-dot connected';
+        document.getElementById('statusText').innerText = 'Pronto (GRBL Idle)';
+      };
+
+      ws.onmessage = (evt) => {
+        let msg = JSON.parse(evt.data);
+        if (msg.type === 'progress') {
+          let pct = Math.round((msg.line / msg.total) * 100);
+          document.getElementById('progressFill').style.width = pct + '%';
+          document.getElementById('progressText').innerText = `Progresso: ${pct}%`;
+          document.getElementById('lineCounterText').innerText = `Linha ${msg.line} / ${msg.total}`;
+          document.getElementById('statusDot').className = 'status-dot running';
+          document.getElementById('statusText').innerText = 'Desenhando...';
+        } else if (msg.type === 'complete') {
+          document.getElementById('statusDot').className = 'status-dot connected';
+          document.getElementById('statusText').innerText = 'Desenho Concluído!';
+        }
+      };
+
+      ws.onclose = () => {
+        document.getElementById('statusDot').className = 'status-dot';
+        document.getElementById('statusText').innerText = 'Desconectado';
+        setTimeout(connectWS, 3000);
+      };
+    }
+
+    function setupEvents() {
+      // Step selector XY
+      document.querySelectorAll('.step-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          selectedStepXY = parseFloat(e.target.dataset.step);
+        });
+      });
+
+      // Step selector Z
+      document.querySelectorAll('.step-btn-z').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.step-btn-z').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          selectedStepZ = parseFloat(e.target.dataset.stepz);
+        });
+      });
+
+      // Jogging XY
+      document.getElementById('jogXPlus').addEventListener('click', () => sendJog('X', selectedStepXY));
+      document.getElementById('jogXMinus').addEventListener('click', () => sendJog('X', -selectedStepXY));
+      document.getElementById('jogYPlus').addEventListener('click', () => sendJog('Y', selectedStepXY));
+      document.getElementById('jogYMinus').addEventListener('click', () => sendJog('Y', -selectedStepXY));
+
+      // Jogging Z Fino
+      document.getElementById('btnZUp').addEventListener('click', () => sendJog('Z', selectedStepZ));
+      document.getElementById('btnZDown').addEventListener('click', () => sendJog('Z', -selectedStepZ));
+
+      // Presets Z
+      document.getElementById('btnPenUp').addEventListener('click', () => sendGCode('G0 Z1.5'));
+      document.getElementById('btnPenDown').addEventListener('click', () => sendGCode('G0 Z-0.5'));
+
+      document.getElementById('btnZero').addEventListener('click', () => {
+        ws.send(JSON.stringify({ type: 'zero' }));
+        document.getElementById('valX').innerText = '0.00';
+        document.getElementById('valY').innerText = '0.00';
+        document.getElementById('valZ').innerText = '0.00';
+      });
+
+      const dropzone = document.getElementById('dropzone');
+      const fileInput = document.getElementById('fileInput');
+
+      dropzone.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+      document.getElementById('btnStartPlot').addEventListener('click', () => {
+        if (loadedGCode.length > 0) {
+          ws.send(JSON.stringify({ type: 'start_stream', lines: loadedGCode }));
+        } else {
+          alert('Por favor, carregue um arquivo G-code primeiro.');
+        }
+      });
+
+      document.getElementById('btnStopPlot').addEventListener('click', () => {
+        ws.send(JSON.stringify({ type: 'stop_stream' }));
+      });
+
+      document.getElementById('btnZoomIn').addEventListener('click', () => { scale *= 1.25; drawGrid(); renderGCode(loadedGCode); });
+      document.getElementById('btnZoomOut').addEventListener('click', () => { scale /= 1.25; drawGrid(); renderGCode(loadedGCode); });
+      document.getElementById('btnResetView').addEventListener('click', () => { scale = 5.0; offsetX = 50; offsetY = 350; drawGrid(); renderGCode(loadedGCode); });
+    }
+
+    function sendJog(axis, dist) {
+      ws.send(JSON.stringify({ type: 'jog', axis: axis, dist: dist }));
+      let el = document.getElementById('val' + axis);
+      el.innerText = (parseFloat(el.innerText) + dist).toFixed(2);
+    }
+
+    function sendGCode(cmd) {
+      ws.send(JSON.stringify({ type: 'gcode_single', gcode: cmd }));
+    }
+
+    function handleFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        let content = e.target.result;
+        loadedGCode = content.split('\n').filter(l => l.trim().length > 0);
+        document.getElementById('fileStats').innerText = `${file.name} (${loadedGCode.length} linhas)`;
+        renderGCode(loadedGCode);
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>

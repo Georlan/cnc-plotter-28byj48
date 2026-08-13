@@ -1,0 +1,24 @@
+@settings(
+  kclVersion = 2.0,
+  defaultLengthUnit = mm
+)
+
+// =============================================================================
+// MÓDULO Z E SUPORTE DA CANETA (05_Modulo_Z_Caneta.kcl)
+// =============================================================================
+
+import penDiameter from "parameters.kcl"
+
+// Suporte do Êmbolo
+export penPlungerHolder = startSketchOn(XY)
+  |> startProfile(at = [0, 0])
+  |> line(end = [12.0, 0])
+  |> line(end = [0, 12.0])
+  |> line(end = [-12.0, 0])
+  |> close()
+  |> extrude(length = 24.0)
+
+// Caneta Plotter
+export penBody = startSketchOn(XY)
+  |> circle(center = [6.0, 6.0], radius = penDiameter / 2)
+  |> extrude(length = 55.0)

@@ -1,0 +1,38 @@
+@settings(
+  kclVersion = 2.0,
+  defaultLengthUnit = mm
+)
+
+// =============================================================================
+// PEÇA 2: CARRINHO X (02_Carrinho_X.kcl)
+// CALIBRADA PARA BAMBU LAB A1 (Tolerância de deslize: 0.18mm)
+// =============================================================================
+
+import baseHeight, dovetailH, slideClearance from "parameters.kcl"
+
+cxWidth  = 28.0
+cxLength = 32.0
+cxHeight = 16.5
+
+// Bloco Principal do Carrinho X (Z=10.0 a 26.5mm)
+export carriageXBody = startSketchOn(XY)
+  |> startProfile(at = [0, 0])
+  |> line(end = [cxWidth, 0])
+  |> line(end = [0, cxLength])
+  |> line(end = [-cxWidth, 0])
+  |> close()
+  |> extrude(length = cxHeight)
+
+// Canal Fêmea Dovetail com Folga de 0.18mm por lado (Base = 9.86mm, Topo = 13.36mm)
+dtFemaleBase = 9.50 + (slideClearance * 2.0)  // 9.86mm
+dtFemaleTop  = 13.00 + (slideClearance * 2.0) // 13.36mm
+
+dtCutPlane = offsetPlane(XY, offset = 0)
+
+export dovetailFemaleCut = startSketchOn(dtCutPlane)
+  |> startProfile(at = [0, 16.0 - dtFemaleBase / 2.0])
+  |> line(end = [cxWidth, 0])
+  |> line(end = [0, dtFemaleBase])
+  |> line(end = [-cxWidth, 0])
+  |> close()
+  |> extrude(length = dovetailH + 0.20)
