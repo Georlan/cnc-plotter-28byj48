@@ -2,8 +2,8 @@
   =============================================================================
   99_Teste_Tolerancias.scad - Cupom de Teste de Folgas FDM
   =============================================================================
-  Gera 5 pares macho+fêmea com folgas progressivas:
-    0.15, 0.20, 0.25, 0.30, 0.35 mm por lado
+  Gera 5 pares macho+fêmea com folgas progressivas, da esquerda para direita:
+    0.18, 0.20, 0.22, 0.25, 0.28 mm por lado
   
   Usa dovetail_male_x / dovetail_female_x corrigidos.
   
@@ -14,7 +14,7 @@
 
 include <00_Parametros.scad>;
 
-clearances = [0.15, 0.20, 0.25, 0.30, 0.35];
+clearances = [0.18, 0.20, 0.22, 0.25, 0.28];
 test_length = 20.0;
 spacing_x   = 25.0;
 

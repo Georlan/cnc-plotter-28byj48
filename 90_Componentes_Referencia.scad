@@ -10,24 +10,26 @@
 include <00_Parametros.scad>;
 
 module motor_28byj48_reference() {
-  // Corpo cilíndrico do motor
+  // A face de montagem/saida e Z=0. O corpo fica em Z negativo e o eixo
+  // aponta para Z positivo, como no motor real. Isso torna a montagem inequivoca.
   color([0.7, 0.7, 0.72])
-    cylinder(r=motor_body_r, h=motor_body_h);
+    translate([0, 0, -motor_body_h])
+      cylinder(r=motor_body_r, h=motor_body_h);
 
   // Boss de saída do eixo
   color([0.65, 0.65, 0.68])
-    translate([0, 0, motor_body_h])
+    translate([0, 0, 0])
       cylinder(r=motor_boss_r, h=motor_boss_h);
 
   // Eixo D (usando módulo unificado)
   color([0.8, 0.8, 0.85])
-    translate([0, 0, motor_body_h + motor_boss_h])
+    translate([0, 0, motor_boss_h])
       d_shaft_solid(h=motor_shaft_length);
 
   // Furos de montagem (flanges laterais)
   color([0.6, 0.6, 0.63])
   for (dx = [-motor_flange_dist/2, motor_flange_dist/2]) {
-    translate([dx, 0, 0])
+    translate([dx, 0, -1.0])
       difference() {
         cylinder(r=3.5, h=1.0);
         translate([0, 0, -EPS])

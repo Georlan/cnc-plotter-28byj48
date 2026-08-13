@@ -26,14 +26,14 @@ include <00_Parametros.scad>;
 // Pinhão X
 color([1.0, 0.55, 0.1])
   translate([0, 0, 0])
-    pinion_gear(thickness=7.0);
+    pinion_gear(thickness=pinion_thickness);
 
 // Pinhão Y
 color([1.0, 0.55, 0.1])
   translate([20, 0, 0])
-    pinion_gear(thickness=7.0);
+    pinion_gear(thickness=pinion_thickness);
 
 // Pinhão Z
 color([1.0, 0.55, 0.1])
   translate([40, 0, 0])
-    pinion_gear(thickness=7.0);
+    pinion_gear(thickness=pinion_thickness);

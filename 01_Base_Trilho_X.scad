@@ -48,7 +48,8 @@ module base_trilho_x(length=x_rail_length) {
         translate([0, rack_y - rack_platform_w/2, base_h - rack_platform_h])
           cube([length, rack_platform_w, rack_platform_h + EPS]);
 
-        for (cx = [40, length/2, length - 40]) {
+        // Cinco diafragmas curtos aumentam a rigidez torcional com pouco material.
+        for (cx = [20 : 40 : length - 20]) {
           translate([cx - wall_thin/2, wall_thin, floor_h - EPS])
             cube([wall_thin, base_w - 2*wall_thin, base_h - floor_h + EPS]);
         }
