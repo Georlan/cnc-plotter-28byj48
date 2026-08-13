@@ -19,7 +19,7 @@ include <00_Parametros.scad>;
 module carrinho_y() {
   // Dimensões do corpo principal
   cy_width   = 32.0;  // X (largura transversal)
-  cy_length  = 28.0;  // Y (comprimento ao longo do trilho Y)
+  cy_length  = y_carriage_length; // Y; comporta a flange de 35mm do 28BYJ-48
   cy_height  = 14.0;  // Z (altura total)
 
   // Centro do canal dovetail no eixo X
@@ -50,24 +50,14 @@ module carrinho_y() {
         cube([cy_width, cy_length, cy_height]);
 
         // ====== ORELHAS DE MONTAGEM DO MOTOR Y (face +X) ======
-        // Orelha frontal
-        hull() {
-          translate([motor_y_x_local, hole_y_front, motor_y_z_local])
-            rotate([0, 90, 0])
-              cylinder(r=wall_screw, h=3.0);
-          translate([motor_y_x_local, 0, motor_y_z_local])
-            rotate([0, 90, 0])
-              cylinder(r=wall_screw, h=3.0);
-        }
-        // Orelha traseira
-        hull() {
-          translate([motor_y_x_local, hole_y_back, motor_y_z_local])
-            rotate([0, 90, 0])
-              cylinder(r=wall_screw, h=3.0);
-          translate([motor_y_x_local, cy_length, motor_y_z_local])
-            rotate([0, 90, 0])
-              cylinder(r=wall_screw, h=3.0);
-        }
+        // As duas orelhas cabem integralmente nos 44mm do carrinho. Evitar
+        // hull ate as extremidades impede que a orelha frontal invada -Y.
+        translate([motor_y_x_local, hole_y_front, motor_y_z_local])
+          rotate([0, -90, 0])
+            cylinder(r=wall_screw, h=3.0);
+        translate([motor_y_x_local, hole_y_back, motor_y_z_local])
+          rotate([0, -90, 0])
+            cylinder(r=wall_screw, h=3.0);
 
         // ====== ORELHAS DE MONTAGEM DO MOTOR Z (face -Y) ======
         // Cada placa desce ate o corpo; na versao anterior ambas flutuavam.
@@ -95,12 +85,12 @@ module carrinho_y() {
       dovetail_female_y(length=cy_length);
 
     // ====== FUROS M3 MOTOR Y ======
-    translate([motor_y_x_local - EPS, hole_y_front, motor_y_z_local])
-      rotate([0, 90, 0])
+    translate([motor_y_x_local + EPS, hole_y_front, motor_y_z_local])
+      rotate([0, -90, 0])
         cylinder(r=motor_flange_hole_r, h=20);
 
-    translate([motor_y_x_local - EPS, hole_y_back, motor_y_z_local])
-      rotate([0, 90, 0])
+    translate([motor_y_x_local + EPS, hole_y_back, motor_y_z_local])
+      rotate([0, -90, 0])
         cylinder(r=motor_flange_hole_r, h=20);
 
     // ====== FUROS M3 MOTOR Z ======

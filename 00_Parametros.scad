@@ -54,6 +54,8 @@ y_rail_length = 196.0;
 base_w        = 30.0;  // Largura da base X no eixo Y
 base_h        = 10.0;  // Altura estrutural da base X
 floor_h       = 3.0;   // Espessura do piso da base X
+x_rack_center_y = 5.0; // Rack X na face frontal; libera o corpo do motor do trilho Y
+x_motor_face_y_local = -1.5; // face alem do carrinho; libera a parede frontal da base
 
 // =============================================================================
 // 4. ENGRENAGENS: CREMALHEIRA E PINHÃO
@@ -134,6 +136,10 @@ Y_MIN = 0.0;
 Y_MAX = 138.0;
 Z_UP   = active_z_travel;
 Z_DOWN = 0.0;
+
+// O 28BYJ-48 usa furos a 35 mm. Com 44 mm, as orelhas do motor Y ficam
+// inteiramente dentro do comprimento do carrinho e nao invadem o motor Z.
+y_carriage_length = 44.0;
 
 // =============================================================================
 // 8. OPÇÕES DE VISUALIZAÇÃO

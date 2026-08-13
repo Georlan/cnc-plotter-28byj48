@@ -5,7 +5,7 @@
   Montagem paramétrica com:
     - Posições cinemáticas X/Y/Z
     - SEPARAÇÃO FÍSICA TOTAL DOS MOTORES X, Y E Z (zero interferência)
-      * Motor X: montado na face traseira do Carrinho X (eixo em -Y)
+      * Motor X: montado na face frontal do Carrinho X (eixo em +Y)
       * Motor Y: montado na face direita do Carrinho Y (eixo em -X)
       * Motor Z: montado na face frontal do Carrinho Y (eixo horizontal em +Y)
     - Transmissão rack/pinhão 100% sintonizada em X, Y e Z
@@ -43,7 +43,7 @@ module cnc_plotter_assembly(
   // Posições de referência da transmissão X
   // =========================================================================
   dt_x_y   = base_w / 2;     // Y=15
-  rack_x_y = base_w - 5.0;   // Y=25
+  rack_x_y = x_rack_center_y; // Y=5, face frontal
 
   rack_x_pitch_z = base_h + tooth_height / 2;
   motor_x_center_z = rack_x_pitch_z + gear_pitch_radius;
@@ -75,19 +75,19 @@ module cnc_plotter_assembly(
   // =========================================================================
   color([1.0, 0.55, 0.1])
     translate([pos_x + cx_width/2,
-               rack_x_y + pinion_thickness/2,
+               rack_x_y - pinion_thickness/2,
                motor_x_center_z + (exploded * 20)])
-      rotate([90, 0, 0])
+      rotate([-90, 0, 0])
         pinion_gear(thickness=pinion_thickness);
 
   // =========================================================================
-  // 4. MOTOR X (referência visual - montado na face traseira em +Y)
+  // 4. MOTOR X (face frontal -Y; corpo fora do envelope do trilho Y)
   // =========================================================================
   if (show_motors) {
     translate([pos_x + cx_width/2,
-               cx_y_offset + cx_width + (exploded * 15),
+               cx_y_offset + x_motor_face_y_local - (exploded * 15),
                motor_x_center_z])
-      rotate([90, 0, 0])
+      rotate([-90, 0, 0])
         motor_28byj48_reference();
   }
 
@@ -108,7 +108,7 @@ module cnc_plotter_assembly(
     // 6. CARRINHO Y (desliza ao longo de Y no trilho Y)
     // =========================================================================
     cy_width_local  = 32.0;
-    cy_length_local = 28.0;
+    cy_length_local = y_carriage_length;
     cy_dt_local_x   = cy_width_local / 2;
     cy_x_offset     = ry_dt_x_local - cy_dt_local_x;  // X=12 - 16 = -4
 
