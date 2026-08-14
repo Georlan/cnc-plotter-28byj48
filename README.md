@@ -3,8 +3,9 @@
 Plotter cartesiana para papel A5, modelada parametricamente em OpenSCAD e
 otimizada para fabricação na Bambu Lab A1.
 
-Para a sequência completa de cupons, lista de fixadores e montagem por
-subconjuntos, consulte [`GUIA_TESTES_E_MONTAGEM.md`](GUIA_TESTES_E_MONTAGEM.md).
+Comece pelo [`GUIA_VISUAL_MONTAGEM.md`](GUIA_VISUAL_MONTAGEM.md). Para os
+critérios detalhados dos cupons, lista de fixadores e diagnóstico, consulte
+[`GUIA_TESTES_E_MONTAGEM.md`](GUIA_TESTES_E_MONTAGEM.md).
 
 ## Arquitetura atual
 
