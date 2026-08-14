@@ -1,0 +1,318 @@
+<div id="cnc3d" class="cnc3d-shell">
+  <div class="cnc3d-toolbar" role="toolbar" aria-label="Etapas da montagem">
+    <button id="cnc3d-prev" class="secondary">← Anterior</button>
+    <div id="cnc3d-steps" class="cnc3d-steps"></div>
+    <button id="cnc3d-next">Próxima →</button>
+    <button id="cnc3d-play" class="secondary">▶ Montar</button>
+  </div>
+
+  <div class="card cnc3d-stage" id="cnc3d-stage">
+    <div class="cnc3d-hint">Arraste para girar · roda para zoom</div>
+    <div class="cnc3d-legend" aria-hidden="true">
+      <span><i class="l-structure"></i>estrutura</span>
+      <span><i class="l-motion"></i>engrenagens</span>
+      <span><i class="l-z"></i>módulo Z</span>
+      <span><i class="l-motor"></i>motores</span>
+    </div>
+  </div>
+
+  <div class="cnc3d-status" aria-live="polite">
+    <strong id="cnc3d-title"></strong>
+    <span id="cnc3d-copy"></span>
+  </div>
+  <p class="cnc3d-note" id="cnc3d-note"></p>
+  <div class="sr-only">Modelo tridimensional interativo da CNC plotter. As etapas mostram trilhos X, carrinhos, viga Y, carrinho Y, módulo Z, motores e movimento final.</div>
+</div>
+
+<style>
+  #cnc3d { --cnc-gap: 10px; width: 100%; color: var(--foreground, CanvasText); font: inherit; color-scheme: light dark; }
+  #cnc3d * { box-sizing: border-box; }
+  #cnc3d .cnc3d-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  #cnc3d .cnc3d-steps { display: flex; gap: 5px; flex: 1 1 380px; overflow-x: auto; scrollbar-width: thin; padding: 2px; }
+  #cnc3d button { white-space: nowrap; }
+  #cnc3d .cnc3d-steps button { min-width: 34px; padding-inline: 10px; }
+  #cnc3d .cnc3d-steps button[aria-current="step"] { outline: 2px solid var(--viz-series-2, AccentColor); outline-offset: 1px; }
+  #cnc3d .cnc3d-stage { position: relative; width: 100%; height: clamp(390px, 62vh, 670px); overflow: hidden; }
+  #cnc3d canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+  #cnc3d canvas:active { cursor: grabbing; }
+  #cnc3d .cnc3d-hint { position: absolute; z-index: 2; top: 10px; right: 10px; padding: 6px 9px; border-radius: 999px; background: color-mix(in srgb, var(--background, Canvas) 82%, transparent); color: var(--muted-foreground, GrayText); font-size: 12px; pointer-events: none; }
+  #cnc3d .cnc3d-legend { position: absolute; z-index: 2; left: 10px; bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px 12px; padding: 7px 9px; border-radius: 8px; background: color-mix(in srgb, var(--background, Canvas) 84%, transparent); color: var(--muted-foreground, GrayText); font-size: 12px; pointer-events: none; }
+  #cnc3d .cnc3d-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  #cnc3d .cnc3d-legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  #cnc3d .l-structure { background: var(--viz-series-1, AccentColor); }
+  #cnc3d .l-motion { background: var(--viz-series-2, LinkText); }
+  #cnc3d .l-z { background: var(--viz-series-3, Mark); }
+  #cnc3d .l-motor { background: var(--muted-foreground, GrayText); }
+  #cnc3d .cnc3d-status { display: grid; grid-template-columns: minmax(150px, .38fr) 1fr; gap: 8px 18px; padding: 12px 2px 2px; align-items: baseline; }
+  #cnc3d .cnc3d-status strong { font-size: 15px; }
+  #cnc3d .cnc3d-status span, #cnc3d .cnc3d-note { color: var(--muted-foreground, GrayText); font-size: 13px; }
+  #cnc3d .cnc3d-note { margin: 6px 2px 0; }
+  #cnc3d .cnc3d-probe { position: absolute; visibility: hidden; }
+  #cnc3d .p-bg { color: var(--background, Canvas); } #cnc3d .p-fg { color: var(--foreground, CanvasText); }
+  #cnc3d .p-muted { color: var(--muted-foreground, GrayText); } #cnc3d .p1 { color: var(--viz-series-1, AccentColor); }
+  #cnc3d .p2 { color: var(--viz-series-2, LinkText); } #cnc3d .p3 { color: var(--viz-series-3, Mark); }
+  #cnc3d .p4 { color: var(--viz-series-4, ActiveText); } #cnc3d .p5 { color: var(--viz-series-5, Canvas); }
+  @media (max-width: 650px) {
+    #cnc3d .cnc3d-stage { height: 430px; }
+    #cnc3d .cnc3d-status { grid-template-columns: 1fr; gap: 3px; }
+    #cnc3d .cnc3d-hint { display: none; }
+  }
+</style>
+
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.170.0";
+import { OrbitControls } from "https://esm.sh/three@0.170.0/examples/jsm/controls/OrbitControls.js";
+
+const root = document.getElementById("cnc3d");
+const stage = document.getElementById("cnc3d-stage");
+const probeNames = ["bg", "fg", "muted", "p1", "p2", "p3", "p4", "p5"];
+const probes = Object.fromEntries(probeNames.map(name => {
+  const el = document.createElement("span");
+  el.className = `cnc3d-probe p-${name}`.replace("p-p", "p");
+  root.appendChild(el);
+  return [name, el];
+}));
+const color = (name) => getComputedStyle(probes[name]).color;
+
+const palette = {
+  background: color("bg"), foreground: color("fg"), muted: color("muted"),
+  structure: color("p1"), motion: color("p2"), z: color("p3"),
+  accent: color("p4"), paper: color("p5")
+};
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(34, 1, 1, 1800);
+camera.up.set(0, 0, 1);
+camera.position.set(355, -360, 275);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+stage.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(110, 120, 34);
+controls.enableDamping = true;
+controls.minDistance = 150;
+controls.maxDistance = 760;
+controls.maxPolarAngle = Math.PI * .49;
+
+scene.add(new THREE.HemisphereLight(palette.background, palette.muted, 2.2));
+const keyLight = new THREE.DirectionalLight(palette.foreground, 3.2);
+keyLight.position.set(-160, -220, 380);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.left = -320; keyLight.shadow.camera.right = 320;
+keyLight.shadow.camera.top = 320; keyLight.shadow.camera.bottom = -320;
+scene.add(keyLight);
+const fillLight = new THREE.DirectionalLight(palette.accent, 1.2);
+fillLight.position.set(340, 280, 160);
+scene.add(fillLight);
+
+const mat = (c, rough=.68, metal=.05) => new THREE.MeshStandardMaterial({ color: c, roughness: rough, metalness: metal });
+const mats = {
+  structure: mat(palette.structure, .72), dark: mat(palette.foreground, .8),
+  motion: mat(palette.motion, .48), z: mat(palette.z, .62),
+  motor: mat(palette.muted, .42, .28), accent: mat(palette.accent, .58),
+  paper: mat(palette.paper, .95), spring: mat(palette.foreground, .3, .65)
+};
+
+function meshBox(size, material, radius=0) {
+  const geometry = radius ? new THREE.BoxGeometry(...size, 2, 2, 2) : new THREE.BoxGeometry(...size);
+  const object = new THREE.Mesh(geometry, material);
+  object.castShadow = true; object.receiveShadow = true;
+  return object;
+}
+function cylinder(radius, length, material, axis="z", segments=32) {
+  const object = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, segments), material);
+  if (axis === "z") object.rotation.x = Math.PI / 2;
+  if (axis === "x") object.rotation.z = Math.PI / 2;
+  object.castShadow = true; object.receiveShadow = true;
+  return object;
+}
+function makeRack(length, along="x") {
+  const group = new THREE.Group();
+  const base = meshBox(along === "x" ? [length, 5, 2] : [5, length, 2], mats.dark);
+  group.add(base);
+  const count = Math.floor(length / 6);
+  for (let i=0; i<count; i++) {
+    const tooth = meshBox(along === "x" ? [2.5, 5.6, 3.2] : [5.6, 2.5, 3.2], mats.motion);
+    if (along === "x") tooth.position.x = -length/2 + 3 + i*6;
+    else tooth.position.y = -length/2 + 3 + i*6;
+    tooth.position.z = 2.4;
+    group.add(tooth);
+  }
+  return group;
+}
+function makeRail(length=220) {
+  const group = new THREE.Group();
+  group.add(meshBox([length, 26, 5], mats.structure));
+  const left = meshBox([length, 3.8, 10], mats.dark); left.position.set(0,-11.1,4.5);
+  const right = left.clone(); right.position.y = 11.1;
+  group.add(left,right);
+  return group;
+}
+function makeGear(axis="y") {
+  const group = new THREE.Group();
+  group.add(cylinder(5.2, 7, mats.motion, axis, 28));
+  for (let i=0; i<10; i++) {
+    const tooth = meshBox([2.4,7,3.8], mats.motion);
+    const a = i*Math.PI*2/10;
+    if (axis === "y") { tooth.position.set(Math.cos(a)*6.7,0,Math.sin(a)*6.7); tooth.rotation.y=-a; }
+    if (axis === "x") { tooth.position.set(0,Math.cos(a)*6.7,Math.sin(a)*6.7); tooth.rotation.x=a; }
+    group.add(tooth);
+  }
+  const bore = cylinder(1.8,7.4,mats.dark,axis,20); group.add(bore);
+  return group;
+}
+function makeMotor(axis="y") {
+  const group = new THREE.Group();
+  group.add(cylinder(14.1,19,mats.motor,axis,48));
+  const cap = cylinder(5.2,2.2,mats.dark,axis,32);
+  const shaft = cylinder(2.5,9,mats.spring,axis,28);
+  if (axis === "y") { cap.position.y=10.5; shaft.position.y=15.5; }
+  if (axis === "x") { cap.position.x=-10.5; shaft.position.x=-15.5; }
+  group.add(cap,shaft);
+  return group;
+}
+function makeSpring() {
+  class Helix extends THREE.Curve {
+    getPoint(t) { const a=t*Math.PI*16; return new THREE.Vector3(Math.cos(a)*5.2, Math.sin(a)*5.2, t*17); }
+  }
+  const object = new THREE.Mesh(new THREE.TubeGeometry(new Helix(),96,.62,7,false),mats.spring);
+  object.castShadow=true; return object;
+}
+
+const fixed = new THREE.Group(); scene.add(fixed);
+const plate = meshBox([270,285,3], mats.dark); plate.position.set(110,120,-3.5); fixed.add(plate);
+const paper = meshBox([148,210,.8], mats.paper); paper.position.set(110,120,-1.6); fixed.add(paper);
+const grid = new THREE.GridHelper(340, 17, palette.muted, palette.muted);
+grid.rotation.x=Math.PI/2; grid.position.set(110,120,-5.2);
+grid.material.transparent=true; grid.material.opacity=.18; fixed.add(grid);
+
+const records=[];
+function phaseObject(object, step, finalPos, startPos, name) {
+  object.userData.partName=name;
+  scene.add(object);
+  records.push({ object, step, final:new THREE.Vector3(...finalPos), start:new THREE.Vector3(...startPos) });
+  return object;
+}
+
+const frontRail=phaseObject(makeRail(),1,[110,0,2],[110,-95,80],"trilho X motriz");
+const rearRail=phaseObject(makeRail(),1,[110,240,2],[110,335,80],"trilho X passivo");
+const frontRack=phaseObject(makeRack(210,"x"),1,[110,-10.2,10.5],[-10,-90,95],"cremalheira X");
+
+const xDrive=phaseObject(meshBox([56,31,12],mats.structure),2,[110,0,16],[-55,0,16],"carrinho X motriz");
+const xPassive=phaseObject(meshBox([56,30,8],mats.accent),2,[110,240,14],[-55,240,14],"sapata X passiva");
+const saddle=phaseObject(meshBox([52,34,4],mats.structure),2,[110,240,20],[-75,275,58],"sela passiva");
+
+const beamGroup=new THREE.Group();
+beamGroup.add(meshBox([30,240,24],mats.structure));
+const beamRail=meshBox([18,230,5],mats.dark); beamRail.position.set(-5.5,0,14); beamGroup.add(beamRail);
+const yRack=makeRack(222,"y"); yRack.position.set(10,0,14); beamGroup.add(yRack);
+const beam=phaseObject(beamGroup,3,[110,120,34],[110,120,170],"viga Y");
+
+const yCarriageGroup=new THREE.Group();
+yCarriageGroup.add(meshBox([44,48,14],mats.structure));
+const zGuide=meshBox([22,18,28],mats.dark); zGuide.position.set(-12,-12,18); yCarriageGroup.add(zGuide);
+const yCarriage=phaseObject(yCarriageGroup,4,[104.5,134,55],[104.5,315,96],"carrinho Y");
+
+const plungerGroup=new THREE.Group();
+plungerGroup.add(meshBox([13,13,22],mats.z));
+const zRack=makeRack(20,"y"); zRack.rotation.z=Math.PI/2; zRack.position.set(9,0,0); plungerGroup.add(zRack);
+const plunger=phaseObject(plungerGroup,5,[92.5,120,59],[48,120,145],"êmbolo Z");
+const holderGroup=new THREE.Group();
+holderGroup.add(cylinder(11,24,mats.z,"z",40));
+const stem=cylinder(5,48,mats.z,"z",32); stem.position.z=36; holderGroup.add(stem);
+const slit=meshBox([3,12,17],mats.dark); slit.position.set(9,0,0); holderGroup.add(slit);
+const holder=phaseObject(holderGroup,5,[92.5,120,30.5],[35,80,38],"porta-ferramenta universal");
+const spring=phaseObject(makeSpring(),5,[92.5,120,69],[150,160,78],"mola de retorno");
+const collar=phaseObject(cylinder(7,4,mats.accent,"z",32),5,[92.5,120,87],[145,80,100],"colar de ajuste");
+const brushGroup=new THREE.Group();
+const handle=cylinder(3.5,48,mats.dark,"z",28); handle.position.z=24; brushGroup.add(handle);
+const ferrule=cylinder(5,10,mats.motor,"z",28); ferrule.position.z=-5; brushGroup.add(ferrule);
+const bristle=new THREE.Mesh(new THREE.ConeGeometry(4.7,13,24),mats.accent); bristle.rotation.x=Math.PI; bristle.position.z=-16.5; brushGroup.add(bristle);
+const brush=phaseObject(brushGroup,5,[92.5,120,28],[18,55,26],"pincel");
+
+const motorX=phaseObject(makeMotor("y"),6,[110,-29,18],[110,-105,60],"motor X");
+const gearX=phaseObject(makeGear("y"),6,[110,-14.5,18],[110,-78,60],"pinhão X");
+const motorY=phaseObject(makeMotor("x"),6,[143,134,63],[225,134,110],"motor Y");
+const gearY=phaseObject(makeGear("x"),6,[126,134,53],[200,134,95],"pinhão Y");
+const motorZ=phaseObject(makeMotor("y"),6,[110,95,67],[110,20,115],"motor Z");
+const gearZ=phaseObject(makeGear("y"),6,[110,111,67],[110,45,106],"pinhão Z");
+
+const steps=[
+  {title:"1 · Trilhos X",copy:"Os dois trilhos descem paralelos. Fixe o motriz; deixe o passivo apenas encostado.",note:"Não aperte o trilho passivo ainda: ele precisa se autoalinhar com a viga."},
+  {title:"2 · Carrinhos X",copy:"Os carrinhos entram pelas extremidades; a sapata PETG recebe a sela superior.",note:"Eles devem percorrer todo o curso sem pontos duros e sem folga lateral perceptível."},
+  {title:"3 · Viga Y",copy:"A viga desce sobre as duas chavetas e esquadra o conjunto X.",note:"Mova a viga de ponta a ponta; só então aperte o trilho passivo em etapas."},
+  {title:"4 · Carrinho Y",copy:"O carrinho entra pela ponta da viga antes dos batentes.",note:"Teste o curso inteiro e confirme que o pinhão não é comprimido contra a cremalheira."},
+  {title:"5 · Módulo Z",copy:"Êmbolo, porta-ferramenta, mola, colar e pincel entram separados e fecham o conjunto.",note:"O pincel deve deslizar axialmente; a mola só retira a folga, sem travar o mergulho."},
+  {title:"6 · Motores",copy:"Os três 28BYJ-48 aproximam-se dos suportes; os pinhões ficam alinhados às cremalheiras.",note:"Aperte alternando os parafusos. Deve existir contato funcional, não pré-carga radial no eixo."},
+  {title:"7 · Movimento real",copy:"X move a viga, Y move o carrinho e Z toca/retira o pincel enquanto os pinhões giram.",note:"Gire a vista e procure colisões. Se houver ruído, salto ou eixo flexionando, pare e aumente a folga."}
+];
+const stepNames=["Trilhos","Carrinhos X","Viga Y","Carrinho Y","Módulo Z","Motores","Movimento"];
+const stepBar=document.getElementById("cnc3d-steps");
+const stepButtons=stepNames.map((name,i)=>{
+  const b=document.createElement("button"); b.className="secondary"; b.textContent=`${i+1} ${name}`;
+  b.addEventListener("click",()=>setStep(i+1)); stepBar.appendChild(b); return b;
+});
+
+let currentStep=1, transitionStart=performance.now(), autoPlay=false, autoTimer=0;
+let motionX=0, motionY=0, motionZ=0;
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function setStep(next, fromAuto=false) {
+  currentStep=Math.max(1,Math.min(7,next));
+  transitionStart=performance.now();
+  stepButtons.forEach((b,i)=>b.toggleAttribute("aria-current",i===currentStep-1));
+  document.getElementById("cnc3d-title").textContent=steps[currentStep-1].title;
+  document.getElementById("cnc3d-copy").textContent=steps[currentStep-1].copy;
+  document.getElementById("cnc3d-note").textContent=steps[currentStep-1].note;
+  if (!fromAuto) { autoPlay=false; document.getElementById("cnc3d-play").textContent="▶ Montar"; }
+}
+document.getElementById("cnc3d-prev").addEventListener("click",()=>setStep(currentStep-1));
+document.getElementById("cnc3d-next").addEventListener("click",()=>setStep(currentStep+1));
+document.getElementById("cnc3d-play").addEventListener("click",()=>{
+  autoPlay=!autoPlay; autoTimer=0;
+  document.getElementById("cnc3d-play").textContent=autoPlay?"Ⅱ Pausar":"▶ Montar";
+  if (autoPlay && currentStep===7) setStep(1,true);
+});
+
+function positionAssembly(now) {
+  const t=ease(Math.min(1,(now-transitionStart)/1100));
+  records.forEach(r=>{
+    if (r.step<currentStep) { r.object.visible=true; r.object.position.copy(r.final); }
+    else if (r.step===currentStep) { r.object.visible=true; r.object.position.lerpVectors(r.start,r.final,t); }
+    else r.object.visible=false;
+  });
+  if (currentStep===7) {
+    const time=now/1000;
+    motionX=Math.sin(time*.55)*70;
+    motionY=Math.sin(time*.82+.6)*70;
+    motionZ=(Math.sin(time*1.35)>0.35)?5:0;
+    const xParts=[xDrive,xPassive,saddle,beam,yCarriage,plunger,holder,spring,collar,brush,motorX,gearX,motorY,gearY,motorZ,gearZ];
+    xParts.forEach(o=>o.position.x+=motionX);
+    [yCarriage,plunger,holder,spring,collar,brush,motorY,gearY,motorZ,gearZ].forEach(o=>o.position.y+=motionY);
+    [plunger,holder,spring,collar,brush,gearZ].forEach(o=>o.position.z-=motionZ);
+    gearX.rotation.y=time*3.1; gearY.rotation.x=-time*4.1; gearZ.rotation.y=time*3.7;
+  }
+  if (autoPlay) {
+    autoTimer += Math.min(50, now-(positionAssembly.last||now));
+    if (autoTimer>2450 && currentStep<7) { autoTimer=0; setStep(currentStep+1,true); }
+  }
+  positionAssembly.last=now;
+}
+
+function resize() {
+  const rect=stage.getBoundingClientRect();
+  renderer.setSize(rect.width,rect.height,false);
+  camera.aspect=rect.width/rect.height; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage); resize(); setStep(1);
+
+function render(now) {
+  positionAssembly(now); controls.update(); renderer.render(scene,camera); requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+</script>
