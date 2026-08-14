@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2400" viewBox="0 0 1600 2400" role="img" aria-labelledby="title desc">
+  <title id="title">Guia visual de testes e montagem da CNC Plotter 28BYJ-48</title>
+  <desc id="desc">Infográfico com cupons físicos, mapa das peças, fixadores, ordem de montagem, módulo Z explodido e teste final de movimento.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f5f7f8}.ink{fill:#17242d}.muted{fill:#60717c}.card{fill:#fff;stroke:#d7dfe3;stroke-width:3}.teal{fill:#15939a}.teal-soft{fill:#dff3f3;stroke:#15939a;stroke-width:4}.graphite{fill:#34444f;stroke:#17242d;stroke-width:4}.passive{fill:#44a7ac;stroke:#176c72;stroke-width:4}.orange{fill:#f28a2b;stroke:#a9500e;stroke-width:4}.yellow{fill:#e1c12f;stroke:#8d7410;stroke-width:4}.motor{fill:#aeb6bc;stroke:#596771;stroke-width:4}.paper{fill:#fffef6;stroke:#c9c5a8;stroke-width:3}.ok{fill:#dff5e8;stroke:#249a55;stroke-width:3}.bad{fill:#fee8e6;stroke:#c53b32;stroke-width:3}.line{fill:none;stroke:#17242d;stroke-width:6;marker-end:url(#arrow)}.motion{fill:none;stroke:#15939a;stroke-width:9;marker-end:url(#arrowTeal)}.thin{fill:none;stroke:#60717c;stroke-width:4}.dash{stroke-dasharray:12 10}.h1{font:700 54px system-ui,sans-serif}.h2{font:700 34px system-ui,sans-serif}.h3{font:700 25px system-ui,sans-serif}.body{font:500 22px system-ui,sans-serif}.small{font:500 18px system-ui,sans-serif}.num{font:800 31px system-ui,sans-serif;fill:#fff}.center{text-anchor:middle}.right{text-anchor:end}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5 0 10Z" fill="#17242d"/></marker>
+    <marker id="arrowTeal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5 0 10Z" fill="#15939a"/></marker>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#e3e6d5" stroke-width="2"/></pattern>
+  </defs>
+
+  <rect width="1600" height="2400" class="bg"/>
+  <rect x="0" y="0" width="1600" height="190" class="ink"/>
+  <text x="90" y="83" class="h1" fill="#fff">GUIA VISUAL · TESTES E MONTAGEM</text>
+  <text x="92" y="135" class="body" fill="#a9dfe1">CNC Plotter 28BYJ-48 · use os parâmetros atuais, não medidas copiadas</text>
+  <rect x="1320" y="50" width="190" height="78" rx="39" class="teal"/>
+  <text x="1415" y="99" class="h3 center" fill="#fff">MECÂNICA</text>
+
+  <!-- 1. cupons -->
+  <text x="80" y="255" class="h2 ink">1 · ANTES DAS PEÇAS GRANDES</text>
+  <text x="80" y="292" class="body muted">Imprima os quatro cupons. Só avance quando todos passarem.</text>
+
+  <g transform="translate(80 330)">
+    <rect width="340" height="255" rx="22" class="card"/>
+    <rect x="22" y="22" width="54" height="54" rx="27" class="teal"/><text x="49" y="59" class="num center">A</text>
+    <path d="M60 150h210v45H60z M90 150l18-30h25l18 30 M180 150l18-30h25l18 30" class="teal-soft"/>
+    <text x="170" y="95" class="h3 center ink">99 · GUIAS</text>
+    <text x="170" y="225" class="small center muted">menor folga que desliza sem força</text>
+  </g>
+  <g transform="translate(445 330)">
+    <rect width="340" height="255" rx="22" class="card"/>
+    <rect x="22" y="22" width="54" height="54" rx="27" class="teal"/><text x="49" y="59" class="num center">B</text>
+    <path d="M55 185h230v30H55z" class="graphite"/>
+    <path d="M65 185l15-28 15 28 15-28 15 28 15-28 15 28 15-28 15 28 15-28 15 28 15-28 15 28" class="orange"/>
+    <circle cx="170" cy="125" r="48" class="orange"/><circle cx="170" cy="125" r="15" class="card"/>
+    <text x="170" y="95" class="h3 center ink">91 · DENTES</text>
+    <text x="170" y="240" class="small center muted">gira contínuo; não salta nem trava</text>
+  </g>
+  <g transform="translate(810 330)">
+    <rect width="340" height="255" rx="22" class="card"/>
+    <rect x="22" y="22" width="54" height="54" rx="27" class="teal"/><text x="49" y="59" class="num center">C</text>
+    <circle cx="120" cy="150" r="65" class="teal-soft"/><circle cx="120" cy="150" r="45" class="card"/>
+    <path d="M205 105v105h28v-70h65v70h28V105z" class="graphite"/>
+    <text x="170" y="95" class="h3 center ink">99 · BOLSO</text>
+    <text x="170" y="240" class="small center muted">livre no anel e no garfo</text>
+  </g>
+  <g transform="translate(1175 330)">
+    <rect width="340" height="255" rx="22" class="card"/>
+    <rect x="22" y="22" width="54" height="54" rx="27" class="teal"/><text x="49" y="59" class="num center">D</text>
+    <rect x="105" y="95" width="130" height="115" rx="28" class="yellow"/>
+    <path d="M170 95v115" class="thin dash"/>
+    <rect x="138" y="120" width="64" height="75" rx="16" class="card"/>
+    <text x="170" y="82" class="h3 center ink">99B · MANDRIL</text>
+    <text x="170" y="240" class="small center muted">segura sem esmagar o cabo</text>
+  </g>
+
+  <!-- 2. mapa da montagem -->
+  <text x="80" y="665" class="h2 ink">2 · MAPA DA MONTAGEM</text>
+  <rect x="80" y="705" width="1440" height="560" rx="24" class="card"/>
+  <polygon points="280,1130 1130,1130 1280,1000 430,1000" fill="url(#grid)" class="paper"/>
+  <polygon points="170,1190 1200,1190 1280,1130 250,1130" class="graphite"/>
+  <polygon points="300,850 1330,850 1410,790 380,790" class="passive"/>
+  <path d="M220 1140l20-20 20 20 20-20 20 20 20-20 20 20 20-20 20 20 20-20 20 20" class="orange"/>
+  <polygon points="570,1150 760,1150 810,1110 620,1110" class="graphite"/>
+  <polygon points="700,820 890,820 940,780 750,780" class="passive"/>
+  <rect x="635" y="710" width="70" height="430" class="graphite"/>
+  <rect x="790" y="710" width="70" height="105" class="graphite"/>
+  <rect x="635" y="675" width="225" height="50" class="graphite"/>
+  <polygon points="690,675 1010,675 1055,640 735,640" class="graphite"/>
+  <polygon points="810,680 990,680 1030,650 850,650" class="passive"/>
+  <circle cx="980" cy="650" r="62" class="motor"/><circle cx="850" cy="705" r="58" class="motor"/>
+  <circle cx="770" cy="1115" r="54" class="motor"/>
+  <circle cx="745" cy="1140" r="34" class="orange"/><circle cx="920" cy="665" r="30" class="orange"/>
+  <rect x="865" y="595" width="62" height="140" class="yellow"/>
+  <rect x="886" y="710" width="20" height="220" class="yellow"/>
+  <path d="M896 930v125" class="graphite"/><path d="M878 1055l18 48 18-48" class="orange"/>
+
+  <text x="160" y="760" class="h3 ink">01B · trilho X passivo</text><path d="M390 765L500 820" class="line"/>
+  <text x="150" y="1035" class="h3 ink">01 · trilho X motriz</text><path d="M410 1040L470 1135" class="line"/>
+  <text x="1120" y="745" class="h3 ink">03 · viga Y</text><path d="M1160 750L1020 655" class="line"/>
+  <text x="1130" y="925" class="h3 ink">04 · carrinho Y</text><path d="M1120 930L975 700" class="line"/>
+  <text x="1120" y="1045" class="h3 ink">05 · ferramenta Z</text><path d="M1110 1050L920 920" class="line"/>
+  <text x="160" y="930" class="h3 ink">02 · carrinhos X</text><path d="M430 930L640 1075" class="line"/>
+  <g transform="translate(1020 1165)"><rect width="420" height="64" rx="15" class="teal-soft"/><circle cx="34" cy="32" r="13" class="orange"/><text x="62" y="40" class="body ink">laranja = pinhão / rack</text></g>
+
+  <!-- 3. fixadores -->
+  <text x="80" y="1345" class="h2 ink">3 · MAPA DOS FIXADORES</text>
+  <rect x="80" y="1380" width="1440" height="330" rx="24" class="card"/>
+  <g transform="translate(115 1420)">
+    <circle cx="46" cy="42" r="34" class="teal"/><text x="46" y="52" class="num center">8</text>
+    <text x="100" y="35" class="h3 ink">M4 · trilhos</text><text x="100" y="68" class="small muted">4 dianteiros + 4 traseiros</text>
+  </g>
+  <g transform="translate(500 1420)">
+    <circle cx="46" cy="42" r="34" class="teal"/><text x="46" y="52" class="num center">6</text>
+    <text x="100" y="35" class="h3 ink">M3x8 · motores</text><text x="100" y="68" class="small muted">+ 6 porcas M3</text>
+  </g>
+  <g transform="translate(920 1420)">
+    <circle cx="46" cy="42" r="34" class="teal"/><text x="46" y="52" class="num center">2</text>
+    <text x="100" y="35" class="h3 ink">M3x10 · viga</text><text x="100" y="68" class="small muted">um por extremidade</text>
+  </g>
+  <g transform="translate(115 1535)">
+    <circle cx="46" cy="42" r="34" class="teal"/><text x="46" y="52" class="num center">1</text>
+    <text x="100" y="35" class="h3 ink">M3x8 · sapata</text><text x="100" y="68" class="small muted">não bloquear a flutuação</text>
+  </g>
+  <g transform="translate(500 1535)">
+    <circle cx="46" cy="42" r="34" class="teal"/><text x="46" y="52" class="num center">1</text>
+    <text x="100" y="35" class="h3 ink">M3x12 · colar Z</text><text x="100" y="68" class="small muted">+ 1 porca M3</text>
+  </g>
+  <g transform="translate(920 1535)">
+    <circle cx="46" cy="42" r="34" class="teal"/><text x="46" y="52" class="num center">1</text>
+    <text x="100" y="35" class="h3 ink">M3x14 · mandril</text><text x="100" y="68" class="small muted">+ 1 porca M3</text>
+  </g>
+  <text x="1460" y="1670" class="h3 right ink">TOTAL · 19 PARAFUSOS</text>
+
+  <!-- 4. sequência -->
+  <text x="80" y="1790" class="h2 ink">4 · ORDEM QUE EVITA TRAVAMENTO</text>
+  <g transform="translate(80 1830)">
+    <g><rect width="190" height="130" rx="20" class="teal-soft"/><circle cx="35" cy="35" r="22" class="teal"/><text x="35" y="44" class="num center">1</text><text x="95" y="64" class="h3 center ink">trilho</text><text x="95" y="96" class="small center muted">motriz firme</text></g>
+    <path d="M205 65h45" class="line"/>
+    <g transform="translate(265)"><rect width="190" height="130" rx="20" class="teal-soft"/><circle cx="35" cy="35" r="22" class="teal"/><text x="35" y="44" class="num center">2</text><text x="95" y="64" class="h3 center ink">trilho</text><text x="95" y="96" class="small center muted">passivo frouxo</text></g>
+    <path d="M470 65h45" class="line"/>
+    <g transform="translate(530)"><rect width="190" height="130" rx="20" class="teal-soft"/><circle cx="35" cy="35" r="22" class="teal"/><text x="35" y="44" class="num center">3</text><text x="95" y="64" class="h3 center ink">carrinhos</text><text x="95" y="96" class="small center muted">+ sapata</text></g>
+    <path d="M735 65h45" class="line"/>
+    <g transform="translate(795)"><rect width="190" height="130" rx="20" class="teal-soft"/><circle cx="35" cy="35" r="22" class="teal"/><text x="35" y="44" class="num center">4</text><text x="95" y="64" class="h3 center ink">viga Y</text><text x="95" y="96" class="small center muted">faz o esquadro</text></g>
+    <path d="M1000 65h45" class="line"/>
+    <g transform="translate(1060)"><rect width="190" height="130" rx="20" class="teal-soft"/><circle cx="35" cy="35" r="22" class="teal"/><text x="35" y="44" class="num center">5</text><text x="95" y="64" class="h3 center ink">mover X</text><text x="95" y="96" class="small center muted">e apertar atrás</text></g>
+    <path d="M1265 65h45" class="line"/>
+    <g transform="translate(1325)"><rect width="115" height="130" rx="20" class="ok"/><circle cx="35" cy="35" r="22" fill="#249a55"/><text x="35" y="44" class="num center">✓</text><text x="58" y="82" class="small center ink">livre</text></g>
+  </g>
+
+  <!-- 5. Z -->
+  <text x="80" y="2075" class="h2 ink">5 · Z: ORDEM DAS PEÇAS</text>
+  <rect x="80" y="2110" width="900" height="210" rx="24" class="card"/>
+  <g transform="translate(115 2145)">
+    <rect x="0" y="25" width="95" height="120" class="graphite"/><path d="M95 40l24 10-24 10 24 10-24 10 24 10-24 10" class="orange"/>
+    <text x="48" y="180" class="small center ink">êmbolo</text>
+    <path d="M135 85h42" class="line"/>
+    <rect x="195" y="15" width="18" height="140" class="yellow"/><text x="204" y="180" class="small center ink">haste</text>
+    <path d="M230 85h42" class="line"/>
+    <path d="M290 25v120 M275 38h30 M275 55h30 M275 72h30 M275 89h30 M275 106h30 M275 123h30" class="thin"/><text x="290" y="180" class="small center ink">mola</text>
+    <path d="M325 85h42" class="line"/>
+    <rect x="385" y="55" width="70" height="55" rx="14" class="yellow"/><text x="420" y="180" class="small center ink">colar</text>
+    <path d="M472 85h42" class="line"/>
+    <rect x="532" y="15" width="100" height="140" rx="25" class="yellow"/><path d="M582 15v140" class="thin dash"/><text x="582" y="180" class="small center ink">mandril</text>
+    <path d="M650 85h42" class="line"/>
+    <path d="M730 15v120" class="graphite"/><path d="M712 135l18 35 18-35" class="orange"/><text x="730" y="195" class="small center ink">pincel</text>
+  </g>
+  <rect x="1015" y="2110" width="505" height="210" rx="24" class="ok"/>
+  <text x="1268" y="2160" class="h3 center ink">ANTES DE ENERGIZAR</text>
+  <text x="1060" y="2205" class="body ink">✓ X e Y percorrem tudo com a mão</text>
+  <text x="1060" y="2245" class="body ink">✓ Z comprime e retorna sozinho</text>
+  <text x="1060" y="2285" class="body ink">✓ nenhum pinhão raspa no bolso</text>
+
+  <rect x="0" y="2350" width="1600" height="50" class="ink"/>
+  <text x="800" y="2383" class="small center" fill="#fff">Se travar: pare, registre o eixo e volte ao cupom correspondente. Não compense com força do motor.</text>
+</svg>
