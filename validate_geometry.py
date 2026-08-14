@@ -27,7 +27,8 @@ PIECES = [
     # independentes no STL, portanto o contador topologico retorna 7.
     ('03_Trilho_Y.scad',                 '03_Trilho_Y.stl',                 7),
     ('04_Carrinho_Y.scad',               '04_Carrinho_Y.stl',               1),
-    ('05_Modulo_Z_Caneta.scad',          '05_Modulo_Z_Caneta.stl',          2),
+    # Embolo, colar, mandril/haste e tres buchas redutoras.
+    ('05_Modulo_Z_Caneta.scad',          '05_Modulo_Z_Caneta.stl',          6),
     ('06_Pinhoes.scad',                  '06_Pinhoes.stl',                  3),
     ('07_Batentes.scad',                 '07_Batentes.stl',                 6),
     ('08_Clips_Fixacao_Papel.scad',      '08_Clips_Fixacao_Papel.stl',      4),
@@ -39,7 +40,10 @@ PIECES = [
     ('97_Diagnostico_Motores.scad',      '97_Diagnostico_Motores.stl',      1),
     ('98_Teste_Interferencias.scad',     '98_Teste_Interferencias.stl',     1),
     ('99_Teste_Tolerancias.scad',        '99_Teste_Tolerancias.stl',       10),
+    ('99_Teste_Folga_Pinhao_FDM.scad',   '99_Teste_Folga_Pinhao_FDM.stl',   3),
+    ('99B_Teste_Portaferramenta_FDM.scad','99B_Teste_Portaferramenta_FDM.stl',4),
     ('90_Componentes_Referencia.scad',   '90_Componentes_Referencia.stl',  -1),
+    ('96_Validacao_Curso.scad',          '96_Validacao_Curso.stl',         -1),
     ('CNC_Plotter_Full_Assembly.scad',   'CNC_Plotter_Full_Assembly.stl',  -1),
 ]
 
