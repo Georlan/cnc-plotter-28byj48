@@ -1,44 +1,98 @@
-# 🗺️ Roadmap do Projeto: Mini CNC Plotter 28BYJ-48 + ULN2003
+# Roadmap — CNC Plotter 28BYJ-48
 
-Este documento organiza todas as etapas necessárias para colocar a sua Mini CNC Plotter em pleno funcionamento.
+Este roadmap acompanha o estado real do projeto. As medidas continuam em
+`00_Parametros.scad`; resultados físicos podem alterar folgas sem invalidar a
+sequência abaixo.
 
----
+## Estado atual
 
-## 📌 Etapa 1: Parte Elétrica e Alimentação (Urgente)
-- [ ] **Alimentação Externa de 5V (2A)**:
-  - Desconectar a alimentação dos 3 drivers ULN2003 do pino 5V do Arduino.
-  - Conectar uma fonte externa de 5V (2A) na barra de alimentação da protoboard.
-  - **GND Comum**: Unificar o GND da fonte externa com o pino GND do Arduino.
-- [ ] **Conferência da Pinagem no Arduino Uno**:
-  - **Eixo X**: IN1 $\rightarrow$ D2 | IN2 $\rightarrow$ D3 | IN3 $\rightarrow$ D4 | IN4 $\rightarrow$ D5
-  - **Eixo Y**: IN1 $\rightarrow$ D6 | IN2 $\rightarrow$ D7 | IN3 $\rightarrow$ D8 | IN4 $\rightarrow$ D9
-  - **Eixo Z**: IN1 $\rightarrow$ D10 | IN2 $\rightarrow$ D11 | IN3 $\rightarrow$ D12 | IN4 $\rightarrow$ D13
+- [x] Estrutura paramétrica completa em OpenSCAD.
+- [x] Trilhos X duplos, viga Y apoiada e módulo Z redesenhados.
+- [x] Motores e pinhões posicionados nos três eixos.
+- [x] Folgas de segurança e porta-ferramenta para caneta/pincel adicionados.
+- [x] Testes de impressão e guias de montagem preparados.
+- [x] Simulação 3D interativa em `GUIA_3D_INTERATIVO.html`.
+- [ ] Validar as tolerâncias na impressora real.
 
----
+## Fase 1 — Cupons antes das peças grandes
 
-## 📌 Etapa 2: Gravação e Teste de Firmware
-- [x] **Criar Firmware Customizado**: Arquivo `CNC_Plotter_28BYJ48.ino` criado com suporte a 3x ULN2003 (half-stepping) e interpretador G-code.
-- [ ] **Carregar Firmware no Arduino Uno**: Gravar o sketch via Arduino IDE ou linha de comando.
-- [ ] **Teste Inicial de Comunicação Serial**: Conectar na porta a 115200 baud e enviar o comando `?` para receber o status `<Idle>`.
+- [ ] Imprimir `91_Teste_Engrenamento_FDM.scad` e escolher o engrenamento que
+  gira continuamente, sem salto e sem forçar o eixo.
+- [ ] Imprimir `99_Teste_Folga_Pinhao_FDM.scad` e registrar a melhor folga.
+- [ ] Imprimir `99_Teste_Tolerancias.scad` e registrar as folgas que deslizam
+  sem jogo excessivo.
+- [ ] Imprimir `99B_Teste_Portaferramenta_FDM.scad` com o material final e
+  testar caneta e pincel.
+- [ ] Atualizar somente os parâmetros correspondentes em `00_Parametros.scad`.
 
----
+**Portão de avanço:** todos os cupons devem passar antes de imprimir trilhos,
+viga e carrinhos completos.
 
-## 📌 Etapa 3: Calibração Mecânica e Eixos
-- [ ] **Verificação de Sentido de Giro**:
-  - Testar movimentação individual dos eixos X, Y e Z.
-  - Se algum eixo mover no sentido inverso, inverter a sequência dos pinos ou a direção no código.
-- [ ] **Calibração de Passos por Millímetro (`STEPS_PER_MM`)**:
-  - Medir com paquímetro/régua o deslocamento real de 10mm.
-  - Ajustar as variáveis `STEPS_PER_MM_X`, `STEPS_PER_MM_Y` e `STEPS_PER_MM_Z` no `.ino`.
+## Fase 2 — Impressão e inspeção
 
----
+- [ ] Gerar os STL com `build_stl.sh` após calibrar os cupons.
+- [ ] Imprimir pinhões e peças de precisão primeiro; depois as peças longas.
+- [ ] Remover rebarbas sem desgastar dentes ou superfícies de referência.
+- [ ] Conferir empenamento, furos, encaixes, rachaduras e camadas.
+- [ ] Separar parafusos, porcas, mola, motores, drivers e fonte.
 
-## 📌 Etapa 4: Primeiros Testes de Desenho (G-Code)
-- [ ] **Desenho de Teste 1**: Enviar o arquivo `G-code-to-write-a-spiral.ngc` para testar movimento contínuo nos eixos X e Y.
-- [ ] **Desenho de Teste 2**: Enviar o arquivo `G-code-to-write-ABC+Hatched.ngc` para testar o acionamento do eixo Z (subir/descer caneta) e hachuras.
+## Fase 3 — Montagem mecânica sem energia
 
----
+- [ ] Fixar o trilho X motriz e deixar o trilho X passivo levemente solto.
+- [ ] Inserir os dois carrinhos X e montar sapata/sela passiva.
+- [ ] Assentar a viga Y nas chavetas e usá-la para alinhar os trilhos X.
+- [ ] Percorrer todo o curso X e apertar o trilho passivo gradualmente.
+- [ ] Inserir o carrinho Y antes dos batentes.
+- [ ] Montar êmbolo, mola, colar e porta-ferramenta do eixo Z.
+- [ ] Instalar motores e aproximar os pinhões sem pré-carga radial.
 
-## 📌 Etapa 5: Expansões Futuras (Opcional)
-- [ ] Instalação de Chaves de Fim de Curso (*Endstops*) para Homing automático (`G28`).
-- [ ] Adição de Suporte Fixo para Papel / Mesa Acrílica.
+**Portão de avanço:** X, Y e Z devem mover manualmente em todo o curso, sem
+pontos duros, colisões, salto de dentes ou flexão visível dos eixos.
+
+## Fase 4 — Elétrica e segurança
+
+- [ ] Alimentar os três ULN2003 com fonte externa regulada de 5 V e margem de
+  corrente; não alimentar todos os motores pelo pino 5 V do Arduino.
+- [ ] Unir o GND da fonte ao GND do Arduino.
+- [ ] Ligar um motor por vez e conferir temperatura, ruído e giro.
+- [ ] Organizar cabos com folga para todo o curso e longe das engrenagens.
+- [ ] Manter um desligamento rápido disponível nos primeiros testes.
+
+| Eixo | ULN2003 no Arduino Uno |
+|---|---|
+| X | IN1–IN4 em D2–D5 |
+| Y | IN1–IN4 em D6–D9 |
+| Z | IN1–IN4 em D10–D13 |
+
+## Fase 5 — Firmware e calibração
+
+- [x] Firmware `CNC_Plotter_28BYJ48.ino` criado para três 28BYJ-48.
+- [ ] Gravar o firmware e validar a serial em 115200 baud.
+- [ ] Testar um eixo por vez em baixa velocidade.
+- [ ] Mandar 10 mm, medir e recalcular `STEPS_PER_MM`; repetir com 50 mm.
+- [ ] Ajustar velocidade e aceleração até eliminar perda de passos.
+- [ ] Confirmar que Z não esmaga o pincel contra o papel.
+
+## Fase 6 — Movimento e desenho
+
+- [ ] Rodar o teste de interferências nos extremos do curso.
+- [ ] Desenhar linhas, quadrado e diagonais; medir esquadro e repetibilidade.
+- [ ] Executar `G-code-to-write-a-spiral.ngc` para movimento contínuo X/Y.
+- [ ] Executar `G-code-to-write-ABC+Hatched.ngc` para validar X/Y/Z.
+- [ ] Repetir o desenho três vezes e comparar retorno, pressão e passos perdidos.
+- [ ] Registrar material, camada, folgas, passos/mm, velocidade e resultado.
+
+## Fase 7 — Melhorias após a primeira máquina funcional
+
+- [ ] Fins de curso e homing automático.
+- [ ] Fixação definitiva do papel e superfície substituível.
+- [ ] Alívio de tração e guia para cabos.
+- [ ] Avaliar motores mais fortes somente se os testes comprovarem falta de
+  torque; primeiro eliminar atrito, desalinhamento e pré-carga.
+
+## Documentos de apoio
+
+- `GUIA_3D_INTERATIVO.html` — montagem e movimento em 3D.
+- `GUIA_VISUAL_MONTAGEM.md` — referência visual rápida.
+- `GUIA_TESTES_E_MONTAGEM.md` — critérios e lista de fixadores.
+- `CNC_Plotter_Animated_Simulation.scad` — simulação paramétrica no OpenSCAD.
