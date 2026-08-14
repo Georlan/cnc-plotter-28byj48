@@ -3,6 +3,9 @@
 Plotter cartesiana para papel A5, modelada parametricamente em OpenSCAD e
 otimizada para fabricação na Bambu Lab A1.
 
+Para a sequência completa de cupons, lista de fixadores e montagem por
+subconjuntos, consulte [`GUIA_TESTES_E_MONTAGEM.md`](GUIA_TESTES_E_MONTAGEM.md).
+
 ## Arquitetura atual
 
 - Um único eixo X apoiado em **dois trilhos paralelos**.
@@ -176,7 +179,8 @@ Testes:
 - `96_Validacao_Curso.scad`: centro e quatro extremos para inspeção visual;
 - `97_Diagnostico_Motores.scad`: corpo, flange, ressalto e eixo dos motores;
 - `98_Teste_Interferencias.scad`: bolsos de pinhão e curso Z;
-- `99_Teste_Tolerancias.scad`: cupom físico de folgas.
+- `99_Teste_Tolerancias.scad`: cupom físico de folgas;
+- `99_Teste_Folga_Pinhao_FDM.scad`: folgas radial e axial do bolso;
 - `99B_Teste_Portaferramenta_FDM.scad`: mandril e três buchas redutoras.
 
 Os testes 92–95 e 97–98 devem exportar somente seu cubo marcador de 1 mm.
