@@ -29,6 +29,8 @@ SCAD_FILES=(
   "07_Batentes.scad"
   "08_Clips_Fixacao_Papel.scad"
   "91_Teste_Engrenamento_FDM.scad"
+  "99_Teste_Tolerancias.scad"
+  "99_Teste_Folga_Pinhao_FDM.scad"
   "99B_Teste_Portaferramenta_FDM.scad"
 )
 
