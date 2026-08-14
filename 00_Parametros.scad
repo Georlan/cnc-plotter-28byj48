@@ -125,13 +125,28 @@ z_motor_travel       = 8.0;
 pen_lift_clearance   = 6.0;
 nominal_compression  = 2.0;
 compliance_travel    = 3.0;
-pen_diameter         = 10.0;
+// O mecanismo Z guia uma haste padrao de 10 mm. A ferramenta real fica em um
+// mandril externo com buchas, portanto caneta e pincel nao precisam ter 10 mm.
+tool_carrier_stem_diameter = 10.0;
+pen_diameter         = tool_carrier_stem_diameter; // compatibilidade
 pen_clearance        = 0.25;
 spring_inner_diameter = 10.8;
 spring_outer_diameter = 13.0;
 spring_length         = 14.0;
 spring_rate_target    = 0.20;
 spring_preload        = 1.0;
+
+tool_holder_bore_diameter = 15.5;
+tool_holder_outer_diameter = 22.0;
+tool_holder_height    = 24.0;
+tool_holder_grip_h    = 16.0;
+tool_holder_slit      = 1.20;
+tool_holder_top_gap   = 4.0;
+tool_carrier_stem_length = 48.0;
+tool_sleeve_outer_diameter = 15.2;
+tool_sleeve_height    = 15.5;
+tool_sleeve_clearance = 0.25;
+tool_sleeve_sizes     = [7.5,10.0,12.5];
 
 z_carriage_w      = 13.0;
 z_carriage_d      = 13.0;
