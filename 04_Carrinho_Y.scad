@@ -14,10 +14,13 @@ module carrinho_y() {
   motor_y_axis_z = rack_pitch_height + gear_pitch_radius + gear_mesh_clearance;
   motor_y_face_x = y_carriage_w;
   motor_y_center_y = y_carriage_length/2;
-  pinion_y_pocket_x0 = rack_local_x-pinion_thickness/2-0.2;
-  pinion_y_pocket_x1 = pinion_y_pocket_x0+pinion_thickness+0.4;
+  pinion_y_pocket_x0 = rack_local_x-pinion_thickness/2
+                       -pinion_pocket_axial_clearance;
+  pinion_y_pocket_x1 = pinion_y_pocket_x0+pinion_thickness
+                       +2*pinion_pocket_axial_clearance;
   motor_y_passage_h = motor_y_face_x-pinion_y_pocket_x1+0.6;
-  pinion_z_pocket_y0 = z_axis_center_y_local-pinion_thickness/2-0.2;
+  pinion_z_pocket_y0 = z_axis_center_y_local-pinion_thickness/2
+                       -pinion_pocket_axial_clearance;
   motor_z_passage_h = pinion_z_pocket_y0+0.6;
   z_slot_w = z_carriage_w + 2*slide_clearance_z;
   z_slot_d = z_carriage_d + 2*slide_clearance_z;
@@ -63,10 +66,11 @@ module carrinho_y() {
     // Canal para a cremalheira Y e bolso do pinhao.
     translate([rack_local_x-(rack_width+0.8)/2,-EPS,-EPS])
       cube([rack_width+0.8,y_carriage_length+2*EPS,tooth_height+0.7]);
-    translate([rack_local_x-pinion_thickness/2-0.2,
+    translate([pinion_y_pocket_x0,
                motor_y_center_y,motor_y_axis_z])
       rotate([0,90,0])
-        cylinder(r=gear_outer_radius+0.35,h=pinion_thickness+0.4);
+        cylinder(r=gear_outer_radius+pinion_pocket_radial_clearance,
+                 h=pinion_thickness+2*pinion_pocket_axial_clearance);
 
     // Passagem do ressalto/eixo do motor Y desde a face lateral ate o bolso.
     // Antes desta abertura havia 2,8 mm de material atravessado pelo eixo.
@@ -93,10 +97,11 @@ module carrinho_y() {
 
     // Bolso do pinhao Z.
     translate([z_motor_axis_x_local,
-               z_axis_center_y_local-pinion_thickness/2-0.2,
+               pinion_z_pocket_y0,
                z_motor_axis_z_local])
       rotate([-90,0,0])
-        cylinder(r=gear_outer_radius+0.35,h=pinion_thickness+0.4);
+        cylinder(r=gear_outer_radius+pinion_pocket_radial_clearance,
+                 h=pinion_thickness+2*pinion_pocket_axial_clearance);
 
     // Passagem coaxial do motor Z ate o bolso do pinhao. A flange apoia na
     // face dianteira; somente ressalto e eixo entram no carrinho.

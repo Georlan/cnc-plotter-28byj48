@@ -43,7 +43,8 @@ module rear_beam_key(z0=passive_saddle_h) {
 module carrinho_x_motriz() {
   motor_x_axis_z = rack_pitch_height + gear_pitch_radius + gear_mesh_clearance;
   motor_face_y = -motor_x_mount_standoff;
-  pinion_pocket_y0 = x_rack_center_y-pinion_thickness/2-0.2;
+  pinion_pocket_y0 = x_rack_center_y-pinion_thickness/2
+                     -pinion_pocket_axial_clearance;
   motor_passage_h = pinion_pocket_y0-motor_face_y+0.6;
 
   difference() {
@@ -69,9 +70,10 @@ module carrinho_x_motriz() {
     translate([-EPS,x_rack_center_y-(rack_width+0.8)/2,-EPS])
       cube([x_carriage_length+2*EPS,rack_width+0.8,tooth_height+0.7]);
     translate([x_carriage_length/2,
-               x_rack_center_y-pinion_thickness/2-0.2,motor_x_axis_z])
+               pinion_pocket_y0,motor_x_axis_z])
       rotate([-90,0,0])
-        cylinder(r=gear_outer_radius+0.35,h=pinion_thickness+0.4);
+        cylinder(r=gear_outer_radius+pinion_pocket_radial_clearance,
+                 h=pinion_thickness+2*pinion_pocket_axial_clearance);
 
     // Corredor coaxial do ressalto e do eixo do 28BYJ-48 ate o bolso do
     // pinhao. O corpo do motor permanece totalmente fora da peca impressa.

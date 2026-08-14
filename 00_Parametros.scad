@@ -93,6 +93,10 @@ gear_tip_radius    = gear_pitch_radius + gear_addendum;
 gear_outer_radius  = gear_tip_radius;
 gear_backlash      = 0.20;
 gear_mesh_clearance = 0.15;
+// Folga do bolso, sem alterar a distancia de engrenamento. Os valores incluem
+// margem para pe de elefante, leve empenamento e excentricidade de impressao.
+pinion_pocket_radial_clearance = 0.70;
+pinion_pocket_axial_clearance  = 0.60;
 // Sobrepoe a raiz de cada dente ao disco central. Sem esta intersecao real,
 // o preview OpenCSG exibe faces coplanares como se o pinhao fosse transparente.
 gear_tooth_root_overlap = 0.20;
