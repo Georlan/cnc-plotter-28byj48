@@ -29,11 +29,12 @@ a folha inteira, mas mantém margem de 15 mm nas extremidades longas.
 | `02B_Sapata_X_Passiva_PETG.scad` | sapata flutuante | PETG |
 | `03_Trilho_Y.scad` | viga-caixão Y com guia e rack | PLA |
 | `04_Carrinho_Y.scad` | carrinho Y e suportes dos motores Y/Z | PLA |
-| `05_Modulo_Z_Caneta.scad` | êmbolo Z + colar | PETG recomendado |
+| `05_Modulo_Z_Caneta.scad` | êmbolo Z + colar + mandril e buchas | PETG recomendado |
 | `06_Pinhoes.scad` | três pinhões D de 10 dentes | PETG recomendado |
 | `07_Batentes.scad` | quatro batentes X + dois Y, por pressão | PETG |
 | `08_Clips_Fixacao_Papel.scad` | quatro clips de papel | PLA ou PETG |
 | `91_Teste_Engrenamento_FDM.scad` | cupom rack + pinhão | material dos pinhões |
+| `99B_Teste_Portaferramenta_FDM.scad` | cupom do mandril e buchas | PETG recomendado |
 
 `02_Carrinho_X.scad` e `02B_Sapata_X_Passiva_PETG.scad` foram separados para
 não exigir PLA e PETG na mesma placa.
@@ -57,7 +58,24 @@ Antes das peças longas, imprima `99_Teste_Tolerancias.scad` e
 `91_Teste_Engrenamento_FDM.scad`. Use a menor folga que deslize sem força
 após retirar rebarbas.
 
-## Altura e pressão da caneta
+## Porta-ferramenta universal
+
+O guia Z continua usando uma haste rígida de `10 mm`, mas a ferramenta agora
+fica num mandril externo de `24 mm` de altura. Isso permite trocar caneta por
+pincel sem enfraquecer o êmbolo, alterar a mola ou reposicionar o motor Z.
+
+- buchas incluídas para cabos redondos nominais de `7,5`, `10,0` e `12,5 mm`;
+- cabos de aproximadamente `14–15 mm` podem ser presos sem bucha;
+- use a menor bucha na qual o cabo entre sem força e aperte o M3 só até eliminar
+  o giro; não comprima a madeira nem a virola metálica do pincel;
+- prenda o cabo redondo acima da virola. Pincéis com cabo cônico devem ser
+  posicionados numa região quase cilíndrica.
+
+Imprima primeiro `99B_Teste_Portaferramenta_FDM.scad`: ele contém o mesmo
+mandril da peça final, mas sem a longa haste, e evita gastar material caso seja
+necessário recalibrar a folga para sua impressora.
+
+## Altura e pressão da ferramenta
 
 - Curso total do motor Z: `8 mm`.
 - Compressão nominal no contato: `2 mm`.
@@ -123,9 +141,10 @@ Não ative suporte dentro deles.
 - 6x M3 para os três motores (dois por motor);
 - 2x M3 para as extremidades da viga;
 - 1x M3x8 para reter a sapata sem apertar a sela;
-- 1x M3 para o colar da caneta.
+- 1x M3 para o colar da haste;
+- 1x M3 com porca para o mandril da caneta ou do pincel.
 
-Total estrutural: **18 parafusos**. Batentes são de pressão e os clips de papel
+Total estrutural: **19 parafusos**. Batentes são de pressão e os clips de papel
 podem usar fita dupla-face.
 
 ## Montagem sem perder o esquadro
@@ -158,6 +177,7 @@ Testes:
 - `97_Diagnostico_Motores.scad`: corpo, flange, ressalto e eixo dos motores;
 - `98_Teste_Interferencias.scad`: bolsos de pinhão e curso Z;
 - `99_Teste_Tolerancias.scad`: cupom físico de folgas.
+- `99B_Teste_Portaferramenta_FDM.scad`: mandril e três buchas redutoras.
 
 Os testes 92–95 e 97–98 devem exportar somente seu cubo marcador de 1 mm.
 Geometria adicional indica colisão.
