@@ -3,7 +3,7 @@
   90_Componentes_Referencia.scad - Modelos Visuais de Referência
   =============================================================================
   Modelos simplificados não-imprimíveis para visualização na montagem.
-  Usa d_shaft_solid() unificado para o eixo D do motor.
+  Usa d_shaft_solid() unificado para o eixo Double-D do motor.
   =============================================================================
 */
 
@@ -78,11 +78,10 @@ module motor_28byj48_reference() {
     translate([0, 0, 0])
       cylinder(r=motor_boss_r, h=motor_boss_h);
 
-  // Eixo D (usando módulo unificado)
+  // Eixo Double-D (usando módulo unificado)
   color([0.8, 0.8, 0.85])
     translate([0, 0, motor_boss_h])
       d_shaft_solid(h=motor_shaft_length);
-
 }
 
 module m3_screw_reference(length=8.0) {
@@ -101,6 +100,8 @@ module driver_uln2003_reference() {
       cube([8, 12, 8]);
 }
 
-// Teste visual isolado
-motor_28byj48_reference();
+// Teste visual isolado: apenas a pose top-level e deslocada para min Z = 0.
+// O sistema local do modulo motor_28byj48_reference() permanece inalterado e
+// continua com a face de montagem em Z=0 para uso correto nas montagens.
+translate([0, 0, motor_body_h]) motor_28byj48_reference();
 translate([40, 0, 0]) driver_uln2003_reference();
