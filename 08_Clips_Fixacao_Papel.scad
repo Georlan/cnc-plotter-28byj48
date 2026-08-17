@@ -35,9 +35,9 @@ module clip_fixacao_papel() {
     translate([clip_w/2, 5.0, -EPS])
       cylinder(r=1.8, h=clip_h + 4.0, center=false);
 
-    // Rasgo de chanfro de introdução suave do papel
+    // Entrada autoportante: face inferior a 45 graus, adequada a FDM sem suporte.
     translate([-EPS, 12.0, clip_h - 1.0])
-      rotate([30, 0, 0])
+      rotate([45, 0, 0])
         cube([clip_w + (EPS * 2), 10.0, 4.0], center=false);
   }
 }

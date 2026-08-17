@@ -2,11 +2,14 @@
   =============================================================================
   99_Teste_Tolerancias.scad - Cupom de Teste de Folgas FDM
   =============================================================================
-  Gera 5 pares macho+fêmea com folgas progressivas, da esquerda para direita:
-    0.18, 0.20, 0.22, 0.25, 0.28 mm por lado
-  
-  Usa dovetail_male_x / dovetail_female_x corrigidos.
-  
+  Série realmente impressa na Bambu Lab A1 (PLA, bico 0.4 mm):
+    0.14, 0.18, 0.22, 0.26, 0.30 mm por lado
+
+  RESULTADO FÍSICO: par #3 = 0.22 mm deslizou suave, sem folga nem travamento.
+  DECISÃO: slide_clearance_xy = 0.22 mm.
+
+  Usa dovetail_male_x / dovetail_female_x.
+
   RESULTADO: exatamente 10 COMPONENTES CONECTADOS no STL
   (5 machos + 5 fêmeas, todos com min Z = 0)
   =============================================================================
@@ -14,7 +17,7 @@
 
 include <00_Parametros.scad>;
 
-clearances = [0.18, 0.20, 0.22, 0.25, 0.28];
+clearances = [0.14, 0.18, 0.22, 0.26, 0.30];
 test_length = 20.0;
 spacing_x   = 25.0;
 female_h    = dovetail_height + 3.0;
@@ -42,7 +45,3 @@ for (i = [0 : len(clearances) - 1]) {
     }
   }
 }
-
-
-
-

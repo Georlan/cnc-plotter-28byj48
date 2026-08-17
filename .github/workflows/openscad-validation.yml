@@ -1,0 +1,54 @@
+name: OpenSCAD geometry validation
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "**/*.scad"
+      - "build_stl.sh"
+      - "validate_geometry.py"
+      - ".github/workflows/openscad-validation.yml"
+  pull_request:
+    paths:
+      - "**/*.scad"
+      - "build_stl.sh"
+      - "validate_geometry.py"
+      - ".github/workflows/openscad-validation.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    env:
+      QT_QPA_PLATFORM: offscreen
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install OpenSCAD
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openscad fonts-liberation
+
+      - name: Compile printable STLs
+        run: |
+          chmod +x ./build_stl.sh
+          ./build_stl.sh
+
+      - name: Check calibrated parameter guard
+        run: |
+          openscad -o /tmp/99C_Validacao_Parametros_Calibrados.stl \
+            99C_Validacao_Parametros_Calibrados.scad
+
+      - name: Run full geometry validation
+        run: python3 validate_geometry.py
+
+      - name: Upload compiled STLs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openscad-stls-${{ github.sha }}
+          path: "*.stl"
+          if-no-files-found: error
+          retention-days: 14

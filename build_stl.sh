@@ -1,22 +1,21 @@
 #!/bin/bash
 # =============================================================================
-# build_stl.sh - Script de Compilação Automática em Lote (.scad -> .stl)
-# =============================================================================
-# Converte todos os arquivos de peças 3D .scad da pasta atual para .stl
-# usando a linha de comando do OpenSCAD (openscad -o ...).
+# build_stl.sh - Compilação em lote das peças e cupons imprimíveis OpenSCAD
 # =============================================================================
 
-set -e
+set -euo pipefail
 
 SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT_DIR="${SRC_DIR}"
 
 echo "======================================================="
-echo " Iniciando Compilação Automática em Lote com OpenSCAD  "
+echo " Compilação OpenSCAD -> STL"
 echo " Diretorio: ${SRC_DIR}"
 echo "======================================================="
 
-# Lista de peças 3D com geometria imprimível real
+# Fontes que geram peças/cupons físicos imprimíveis.
+# Arquivos 90/92-98 são referências/validações e são cobertos por
+# validate_geometry.py, não pelo lote de fabricação.
 SCAD_FILES=(
   "01_Base_Trilho_X.scad"
   "01B_Trilho_X_Passivo.scad"
@@ -30,8 +29,10 @@ SCAD_FILES=(
   "08_Clips_Fixacao_Papel.scad"
   "91_Teste_Engrenamento_FDM.scad"
   "99_Teste_Tolerancias.scad"
+  "99_Teste_Eixo_D.scad"
   "99_Teste_Folga_Pinhao_FDM.scad"
   "99B_Teste_Portaferramenta_FDM.scad"
+  "placa_testes_completa.scad"
 )
 
 if ! command -v openscad >/dev/null 2>&1; then
@@ -47,29 +48,32 @@ FAILED=0
 for file in "${SCAD_FILES[@]}"; do
   COUNT=$((COUNT + 1))
   stl_file="${file%.scad}.stl"
-  
+  log_file="$(mktemp)"
+
   if [ -f "${SRC_DIR}/${file}" ]; then
-    echo -n "[$COUNT/$TOTAL] Compilando: ${file} -> ${stl_file} ... "
-    
-    if openscad -o "${OUT_DIR}/${stl_file}" "${SRC_DIR}/${file}" > /dev/null 2>&1; then
-      echo "✓ Concluído"
+    echo -n "[$COUNT/$TOTAL] ${file} -> ${stl_file} ... "
+
+    if openscad -o "${OUT_DIR}/${stl_file}" "${SRC_DIR}/${file}" >"${log_file}" 2>&1; then
+      echo "OK"
       PASSED=$((PASSED + 1))
     else
-      echo "✗ Erro na compilação!"
+      echo "ERRO"
+      cat "${log_file}"
       FAILED=$((FAILED + 1))
     fi
   else
-    echo "[$COUNT/$TOTAL] Arquivo não encontrado: ${file} (Ignorado)"
+    echo "[$COUNT/$TOTAL] Arquivo nao encontrado: ${file}"
+    FAILED=$((FAILED + 1))
   fi
+
+  rm -f "${log_file}"
 done
 
 echo "======================================================="
-echo " Resumo da Compilação: "
-echo "  Total: ${TOTAL} | Sucesso: ${PASSED} | Erros: ${FAILED}"
+echo " Total: ${TOTAL} | Sucesso: ${PASSED} | Erros: ${FAILED}"
 echo "======================================================="
 
-if [ $FAILED -eq 0 ]; then
+if [ "${FAILED}" -eq 0 ]; then
   exit 0
-else
-  exit 1
 fi
+exit 1

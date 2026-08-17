@@ -1,12 +1,15 @@
 /*
   =============================================================================
-  99_Teste_Eixo_D.scad - Cupom de Calibração do Furo D do Motor 28BYJ-48
+  99_Teste_Eixo_D.scad - Cupom de Calibração do Furo Double-D do 28BYJ-48
   =============================================================================
-  Imprime 4 pinhões com folgas progressivas e etiquetas frontais limpas:
-    - 0.18 mm (justo)
-    - 0.22 mm (nominal atualizado)
-    - 0.25 mm (confortável)
-    - 0.28 mm (livre)
+  Série realmente impressa na Bambu Lab A1 (PLA, bico 0.4 mm):
+    - 0.18 mm (APROVADO: justo, sem patinar e sem exigir força)
+    - 0.22 mm (comparação)
+    - 0.25 mm (comparação)
+    - 0.28 mm (comparação)
+
+  RESULTADO FÍSICO: pinhão #1 = 0.18 mm.
+  DECISÃO: shaft_clearance = 0.18 mm.
   =============================================================================
 */
 
@@ -21,23 +24,21 @@ for (i = [0 : len(clearances)-1]) {
   tx = i * spacing;
 
   translate([tx, 0, 0]) {
-    // 1. Pinhão 100% limpo, sem texto cortando os dentes
+    // 1. Pinhão limpo; pinion_gear() usa o Double-D global e recebe a folga do cupom.
     pinion_gear(thickness=test_h, clearance=c);
 
     // 2. Plaqueta frontal de identificação
     translate([-9, -17, 0]) {
       difference() {
-        // Base da plaqueta
         cube([18, 8.5, 1.2]);
 
-        // Texto em baixo-relevo com o valor exato da folga
         translate([9, 4.25, 0.5])
           linear_extrude(1.0)
             text(str(c), size=3.0, font="Liberation Sans:style=Bold", halign="center", valign="center");
       }
     }
 
-    // Micro-ponte de união para a plaqueta não soltar na impressão (fácil de destacar)
+    // Micro-ponte de união para a plaqueta não soltar na impressão.
     translate([-1.2, -8.6, 0])
       cube([2.4, 1.2, 0.8]);
   }
