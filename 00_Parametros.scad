@@ -14,34 +14,38 @@
 $fn = 50;
 EPS = 0.01;
 
-// Folgas por lado. Confirme com 99_Teste_Tolerancias.scad antes das pecas longas.
-slide_clearance_xy = 0.22;
+// Folgas por lado. Confirmadas nos testes físicos FDM.
+slide_clearance_xy = 0.22; // Validado no Teste 99 (Par #3)
 slide_clearance_z  = 0.15;
 passive_float      = 0.60; // +/-0,60 mm transversal; 1,20 mm total
 pressfit_clearance = 0.15;
-shaft_clearance    = 0.10;
+shaft_clearance    = 0.18; // Validado no Teste de Eixo D (#1)
+
+
 
 wall_thin       = 1.80;
 wall_structural = 2.40;
 wall_screw      = 4.50;
 
-// Motor 28BYJ-48
-motor_body_diameter  = 28.2;
-motor_mount_spacing  = 35.0;
-motor_shaft_diameter = 5.0;
-motor_shaft_flat     = 3.0;
-motor_shaft_length   = 9.0;
+// Motor 28BYJ-48 (Dimensões oficiais Datasheet Mouser/Kiatronics)
+motor_body_diameter  = 28.0; // Datasheet: 28 mm
+motor_mount_spacing  = 35.0; // Datasheet: 35 +/- 0.2 mm
+motor_shaft_diameter = 5.0;  // Datasheet: phi 5.0 (0 a -0.1 mm) -> r = 2.5 mm
+motor_shaft_flat     = 3.0;  // Datasheet: 3.0 (0 a -0.1 mm) espessura da seção D
+motor_shaft_flat_len = 6.0;  // Datasheet: 6.0 +/- 0.2 mm comprimento útil do D
+motor_shaft_length   = 8.5;  // Datasheet: 10.0 - 1.5 = 8.5 mm livre da base
 motor_body_r         = motor_body_diameter / 2;
-motor_body_h         = 19.0;
+motor_body_h         = 19.0; // Datasheet: 19.0 mm
 motor_flange_dist    = motor_mount_spacing;
-motor_flange_hole_r  = 1.6;
-motor_flange_outer_r = 3.5;
+motor_flange_hole_r  = 2.1;  // Datasheet: 2-phi 4.2 +/- 0.15 mm
+motor_flange_outer_r = 3.5;  // Datasheet: 2-R3.5 mm
 motor_flange_thickness = 1.0;
-motor_boss_r         = 4.6;
-motor_boss_h         = 1.5;
+motor_boss_r         = 4.5;  // Datasheet: phi 9.0 mm -> r = 4.5 mm
+motor_boss_h         = 1.5;  // Datasheet: 1.5 mm
 motor_shaft_r        = motor_shaft_diameter / 2;
 motor_mount_clearance = 0.25;
 motor_x_mount_standoff = 3.3;
+
 
 // Estrutura fixa X. Os centros dos trilhos ficam em Y=0 e Y=x_rail_spacing.
 x_rail_length     = 220.0;
@@ -328,7 +332,7 @@ module rack_profile_linear(length, pitch=rack_pitch) {
 }
 
 module pinion_gear(teeth=gear_teeth, pitch=rack_pitch,
-                   thickness=pinion_thickness) {
+                   thickness=pinion_thickness, clearance=shaft_clearance) {
   // Forca uma malha CGAL antes de devolver o pinhao ao preview. No OpenSCAD
   // 2021, o OpenCSG mostra as unioes dos dentes com faces escuras/vazadas no
   // F5 mesmo quando o STL final e valido. render() elimina esse artefato.
@@ -336,28 +340,48 @@ module pinion_gear(teeth=gear_teeth, pitch=rack_pitch,
     difference() {
       linear_extrude(height=thickness)
         pinion_profile_solid(teeth,pitch);
-      translate([0,0,-EPS]) d_shaft_hole(h=thickness+2*EPS);
+      translate([0,0,-EPS]) d_shaft_hole(h=thickness+2*EPS, clearance=clearance);
     }
 }
 
+
 module d_shaft_solid(h=10) {
-  flat_dist = motor_shaft_flat - motor_shaft_r;
+  r = motor_shaft_r; // 2.5 mm
+  d = motor_shaft_flat / 2; // 1.5 mm (espessura total de 3.0 mm entre as duas faces chatas)
   difference() {
-    cylinder(r=motor_shaft_r,h=h);
-    translate([flat_dist,-motor_shaft_r-1,-EPS])
-      cube([(motor_shaft_r+1)*2,(motor_shaft_r+1)*2,h+2*EPS]);
+    cylinder(r=r, h=h);
+    // Corte plano superior
+    translate([-r-1, d, -EPS])
+      cube([(r+1)*2, r+2, h+2*EPS]);
+    // Corte plano inferior
+    translate([-r-1, -d - (r+2), -EPS])
+      cube([(r+1)*2, r+2, h+2*EPS]);
   }
 }
 
-module d_shaft_hole(h=10, clearance=shaft_clearance) {
-  r_c = motor_shaft_r + clearance;
-  flat_dist_c = motor_shaft_flat - motor_shaft_r + clearance;
-  difference() {
-    cylinder(r=r_c,h=h);
-    translate([flat_dist_c,-r_c-1,-EPS])
-      cube([(r_c+1)*2,(r_c+1)*2,h+2*EPS]);
+module d_shaft_hole(h=10, clearance=shaft_clearance, chamfer=0.6) {
+  r_c = motor_shaft_r + clearance; // 2.5 + clearance
+  d_c = (motor_shaft_flat / 2) + clearance; // 1.5 + clearance (espessura total de 3.0 + 2*clearance)
+  
+  union() {
+    difference() {
+      cylinder(r=r_c, h=h);
+      // Corte plano superior
+      translate([-r_c-1, d_c, -EPS])
+        cube([(r_c+1)*2, r_c+2, h+2*EPS]);
+      // Corte plano inferior
+      translate([-r_c-1, -d_c - (r_c+2), -EPS])
+        cube([(r_c+1)*2, r_c+2, h+2*EPS]);
+    }
+    // Entrada chanfrada na primeira camada (elimina pé de elefante da impressão FDM)
+    if (chamfer > 0) {
+      translate([0, 0, -EPS])
+        cylinder(r1=r_c + chamfer, r2=r_c, h=chamfer + EPS);
+    }
   }
 }
+
+
 
 // Compatibilidade com arquivos auxiliares antigos.
 active_z_travel = z_motor_travel;

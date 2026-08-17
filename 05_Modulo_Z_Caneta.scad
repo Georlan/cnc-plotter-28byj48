@@ -87,12 +87,22 @@ module z_universal_tool_carrier(include_stem=true) {
           cylinder(r=tool_carrier_stem_diameter/2,
                    h=tool_carrier_stem_length+EPS);
 
-      // Orelhas longas distribuem o aperto do M3 sem marcar a ferramenta.
-      translate([-ear_gap/2-ear_w,ear_y,holder_bottom_z+4])
-        cube([ear_w,ear_d,tool_holder_height-8]);
-      translate([ear_gap/2,ear_y,holder_bottom_z+4])
-        cube([ear_w,ear_d,tool_holder_height-8]);
+      // Orelhas com chanfro autoportante a 45° na base (sem suportes)
+      for (sx=[-1,1]) {
+        ex = sx < 0 ? -ear_gap/2-ear_w : ear_gap/2;
+        union() {
+          translate([ex,ear_y,holder_bottom_z+4])
+            cube([ear_w,ear_d,tool_holder_height-8]);
+          hull() {
+            translate([ex,ear_y,holder_bottom_z+4-EPS])
+              cube([ear_w,ear_d,EPS]);
+            translate([ex,ear_y,holder_bottom_z])
+              cube([ear_w,ear_d-4,EPS]);
+          }
+        }
+      }
     }
+
 
     // Trecho cilindrico de apoio e teto conico autoportante. O cone evita
     // uma ponte horizontal de 15,5 mm no fundo cego do mandril.

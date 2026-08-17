@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador Interativo 3D — Teste 99 (Tolerâncias Dovetail)</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --panel-bg: rgba(30, 41, 59, 0.85);
+      --panel-border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-blue-hover: #0284c7;
+      --accent-amber: #f59e0b;
+      --accent-green: #10b981;
+      --male-color: #38bdf8;
+      --female-color: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow: hidden;
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    #viewport-container {
+      flex: 1;
+      position: relative;
+      height: 100%;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    }
+
+    #webgl-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Floating UI Overlay */
+    .overlay-panel {
+      position: absolute;
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      z-index: 10;
+    }
+
+    #header-overlay {
+      top: 20px;
+      left: 20px;
+      max-width: 420px;
+    }
+
+    #header-overlay h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #header-overlay .badge {
+      background: rgba(56, 189, 248, 0.2);
+      color: var(--accent-blue);
+      border: 1px solid var(--accent-blue);
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    #header-overlay p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    #controls-overlay {
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .slider-group {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 260px;
+    }
+
+    .slider-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+      min-width: 110px;
+    }
+
+    input[type=range] {
+      flex: 1;
+      accent-color: var(--accent-blue);
+      cursor: pointer;
+    }
+
+    .pair-selector {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-pair {
+      background: #1e293b;
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-pair:hover {
+      border-color: var(--accent-blue);
+      color: var(--text-main);
+    }
+
+    .btn-pair.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .btn-action {
+      background: var(--accent-blue);
+      color: #0f172a;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .btn-action:hover {
+      background: var(--accent-blue-hover);
+    }
+
+    .btn-toggle {
+      background: #334155;
+      color: var(--text-main);
+      border: 1px solid var(--panel-border);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .btn-toggle.active {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    /* Diagnostics Sidebar */
+    #sidebar-overlay {
+      top: 20px;
+      right: 20px;
+      width: 320px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+    }
+
+    .diag-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .diag-metric {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.85rem;
+    }
+
+    .diag-metric span:first-child {
+      color: var(--text-muted);
+    }
+
+    .diag-metric span:last-child {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .eval-box {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+
+    .eval-nominal {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+    }
+
+    .eval-tight {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fde68a;
+    }
+
+    .eval-loose {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #bae6fd;
+    }
+
+    #legend {
+      position: absolute;
+      bottom: 160px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.8rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.7);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--panel-border);
+    }
+
+    .color-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    /* 2D Section Canvas Overlay */
+    #section2d-container {
+      position: absolute;
+      top: 200px;
+      left: 20px;
+      width: 280px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 12px;
+      display: none;
+    }
+
+    #section2d-canvas {
+      width: 100%;
+      height: 140px;
+      background: #0f172a;
+      border-radius: 6px;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+  <div id="viewport-container">
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Header Overlay -->
+    <div id="header-overlay" class="overlay-panel">
+      <h1>Teste 99 — Dovetail <span class="badge">Simulação 3D</span></h1>
+      <p>Simulador interativo do cupom de tolerâncias para os eixos lineares X e Y (Perfil Rabo de Andorinha).</p>
+    </div>
+
+    <!-- 2D Section View -->
+    <div id="section2d-container" class="overlay-panel">
+      <div class="diag-title">
+        <span>Corte Transversal 2D</span>
+        <span id="section-clearance-label" style="color:var(--accent-amber);">0.22 mm</span>
+      </div>
+      <canvas id="section2d-canvas" width="260" height="140"></canvas>
+    </div>
+
+    <!-- Legend -->
+    <div id="legend">
+      <div class="legend-item">
+        <div class="color-dot" style="background:var(--male-color);"></div>
+        <span>Macho / Guia Linear (Trilho)</span>
+      </div>
+      <div class="legend-item">
+        <div class="color-dot" style="background:var(--female-color);"></div>
+        <span>Fêmea / Canal de Deslizamento</span>
+      </div>
+    </div>
+
+    <!-- Diagnostics Sidebar -->
+    <div id="sidebar-overlay" class="overlay-panel">
+      <div class="diag-title">
+        <span>Parâmetros de Tolerância</span>
+        <span id="selected-pair-badge" class="badge">Par #3</span>
+      </div>
+
+      <div class="diag-metric">
+        <span>Folga por lado (c)</span>
+        <span id="val-clearance">0.22 mm</span>
+      </div>
+      <div class="diag-metric">
+        <span>Folga total no topo</span>
+        <span id="val-top-gap">0.44 mm</span>
+      </div>
+      <div class="diag-metric">
+        <span>Largura da base macho</span>
+        <span>9.50 mm</span>
+      </div>
+      <div class="diag-metric">
+        <span>Largura do topo macho</span>
+        <span>13.00 mm</span>
+      </div>
+      <div class="diag-metric">
+        <span>Altura útil da guia (h)</span>
+        <span>4.50 mm</span>
+      </div>
+      <div class="diag-metric">
+        <span>Comprimento do cupom</span>
+        <span>20.00 mm</span>
+      </div>
+
+      <div id="eval-recommendation" class="eval-box eval-nominal">
+        <strong>⭐ Padrão Recomendado (0.22 mm):</strong><br>
+        Equilíbrio ideal entre movimento suave por gravidade e rigidez lateral sem folga perceptível (*wobble*).
+      </div>
+
+      <div style="margin-top:14px; font-size:0.75rem; color:var(--text-muted);">
+        <strong>Critério de Aprovação Física:</strong><br>
+        1. O macho deve deslizar pelo próprio peso ou com leve toque.<br>
+        2. Não deve haver jogo angular perpendicular ao eixo.<br>
+        3. Sem necessidade de lixa ou força excessiva.
+      </div>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div id="controls-overlay" class="overlay-panel">
+      <div class="control-row">
+        <div class="pair-selector">
+          <button class="btn-pair" data-c="0.18" data-idx="1">0.18 mm</button>
+          <button class="btn-pair" data-c="0.20" data-idx="2">0.20 mm</button>
+          <button class="btn-pair active" data-c="0.22" data-idx="3">0.22 mm (Nominal)</button>
+          <button class="btn-pair" data-c="0.25" data-idx="4">0.25 mm</button>
+          <button class="btn-pair" data-c="0.28" data-idx="5">0.28 mm</button>
+        </div>
+
+        <button id="btn-toggle-all" class="btn-toggle">Mostrar Todos os 5 Pares</button>
+        <button id="btn-toggle-section" class="btn-toggle">Corte 2D</button>
+        <button id="btn-toggle-wire" class="btn-toggle">Wireframe</button>
+      </div>
+
+      <div class="control-row">
+        <button id="btn-anim-play" class="btn-action">
+          <span id="anim-icon">▶</span> Animar Deslizamento
+        </button>
+
+        <div class="slider-group">
+          <label>Posição Linear (X):</label>
+          <input type="range" id="slide-slider" min="-18" max="18" step="0.1" value="0">
+          <span id="slide-val-display" style="min-width:55px; font-weight:600; font-size:0.85rem;">0.0 mm</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Parâmetros geométricos (00_Parametros.scad)
+    const H = 4.5;
+    const W_BOT = 9.5;
+    const W_TOP = 13.0;
+    const LENGTH = 20.0;
+    const CLEARANCES = [0.18, 0.20, 0.22, 0.25, 0.28];
+    
+    let currentClearance = 0.22;
+    let isAllPairsView = false;
+    let isWireframe = false;
+    let isAnimating = false;
+    let animTime = 0;
+
+    // Three.js Scene Setup
+    const container = document.getElementById('viewport-container');
+    const canvas = document.getElementById('webgl-canvas');
+    
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f172a);
+    scene.fog = new THREE.FogExp2(0x0f172a, 0.012);
+
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.set(30, 25, 45);
+
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, H / 2, 0);
+
+    // Luzes
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+    scene.add(ambientLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.85);
+    dirLight1.position.set(40, 60, 50);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.4);
+    dirLight2.position.set(-40, -20, -30);
+    scene.add(dirLight2);
+
+    // Grid Floor
+    const gridHelper = new THREE.GridHelper(120, 24, 0x334155, 0x1e293b);
+    gridHelper.position.y = -0.05;
+    scene.add(gridHelper);
+
+    // Materiais
+    const maleMaterial = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      roughness: 0.35,
+      metalness: 0.15,
+      wireframe: false
+    });
+
+    const femaleMaterial = new THREE.MeshStandardMaterial({
+      color: 0x94a3b8,
+      roughness: 0.45,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.78,
+      wireframe: false
+    });
+
+    // Função para criar geometria Dovetail Macho
+    function createDovetailMaleGeo(len) {
+      const shape = new THREE.Shape();
+      shape.moveTo(-W_BOT / 2, 0);
+      shape.lineTo(-W_TOP / 2, H);
+      shape.lineTo(W_TOP / 2, H);
+      shape.lineTo(W_BOT / 2, 0);
+      shape.closePath();
+
+      const extrudeSettings = {
+        steps: 1,
+        depth: len,
+        bevelEnabled: false
+      };
+
+      const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geo.center();
+      geo.rotateY(Math.PI / 2); // Alinhar ao longo do eixo X
+      return geo;
+    }
+
+    // Função para criar geometria Bloco Fêmea com Canal
+    function createDovetailFemaleGeo(len, c) {
+      const c_neck = W_BOT + 2 * c;
+      const c_top = W_TOP + 2 * c;
+      const c_h = H + c;
+
+      const outerW = W_TOP + 7.0;
+      const outerH = H + 3.5;
+
+      const shape = new THREE.Shape();
+      // Bloco externo
+      shape.moveTo(-outerW / 2, -c);
+      shape.lineTo(outerW / 2, -c);
+      shape.lineTo(outerW / 2, outerH);
+      shape.lineTo(-outerW / 2, outerH);
+      shape.closePath();
+
+      // Recorte interno do canal (hole)
+      const hole = new THREE.Path();
+      hole.moveTo(-c_neck / 2, -c);
+      hole.lineTo(c_neck / 2, -c);
+      hole.lineTo(c_top / 2, c_h);
+      hole.lineTo(-c_top / 2, c_h);
+      hole.closePath();
+
+      shape.holes.push(hole);
+
+      const extrudeSettings = {
+        steps: 1,
+        depth: len,
+        bevelEnabled: false
+      };
+
+      const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geo.center();
+      geo.rotateY(Math.PI / 2);
+      return geo;
+    }
+
+    // Grupo de Modelos
+    const modelGroup = new THREE.Group();
+    scene.add(modelGroup);
+
+    let activeMaleMesh = null;
+    let activeFemaleMesh = null;
+
+    function buildScene() {
+      // Limpar grupo
+      while (modelGroup.children.length > 0) {
+        modelGroup.remove(modelGroup.children[0]);
+      }
+
+      if (isAllPairsView) {
+        // Mostrar os 5 pares lado a lado
+        CLEARANCES.forEach((c, idx) => {
+          const spacing = 25;
+          const posX = (idx - 2) * spacing;
+
+          // Macho
+          const mGeo = createDovetailMaleGeo(LENGTH);
+          const mMesh = new THREE.Mesh(mGeo, maleMaterial);
+          mMesh.position.set(posX, H / 2, -14);
+          modelGroup.add(mMesh);
+
+          // Fêmea
+          const fGeo = createDovetailFemaleGeo(LENGTH, c);
+          const fMesh = new THREE.Mesh(fGeo, femaleMaterial);
+          fMesh.position.set(posX, (H + 3.5) / 2 - c, 14);
+          modelGroup.add(fMesh);
+        });
+
+        controls.target.set(0, 2, 0);
+      } else {
+        // Mostrar o par selecionado encaixado
+        const mGeo = createDovetailMaleGeo(LENGTH + 12);
+        activeMaleMesh = new THREE.Mesh(mGeo, maleMaterial);
+        activeMaleMesh.position.set(parseFloat(document.getElementById('slide-slider').value), H / 2, 0);
+        modelGroup.add(activeMaleMesh);
+
+        const fGeo = createDovetailFemaleGeo(LENGTH, currentClearance);
+        activeFemaleMesh = new THREE.Mesh(fGeo, femaleMaterial);
+        activeFemaleMesh.position.set(0, (H + 3.5) / 2 - currentClearance, 0);
+        modelGroup.add(activeFemaleMesh);
+
+        controls.target.set(0, H / 2, 0);
+      }
+
+      draw2DSection();
+    }
+
+    // Atualizar Diagnósticos
+    function updateDiagnostics(c, idx) {
+      document.getElementById('selected-pair-badge').innerText = `Par #${idx}`;
+      document.getElementById('val-clearance').innerText = `${c.toFixed(2)} mm`;
+      document.getElementById('val-top-gap').innerText = `${(c * 2).toFixed(2)} mm`;
+      document.getElementById('section-clearance-label').innerText = `${c.toFixed(2)} mm`;
+
+      const evalBox = document.getElementById('eval-recommendation');
+      if (c <= 0.18) {
+        evalBox.className = 'eval-box eval-tight';
+        evalBox.innerHTML = `<strong>⚠️ Ajuste Muito Justo (${c.toFixed(2)} mm):</strong><br>Pode prender ou exigir lixamento se a impressora tiver ligeira sobre-extrusão ou pé de elefante.`;
+      } else if (c === 0.22) {
+        evalBox.className = 'eval-box eval-nominal';
+        evalBox.innerHTML = `<strong>⭐ Padrão Recomendado (0.22 mm):</strong><br>Equilíbrio ideal entre movimento suave por gravidade e rigidez lateral sem folga perceptível (*wobble*).`;
+      } else if (c >= 0.25) {
+        evalBox.className = 'eval-box eval-loose';
+        evalBox.innerHTML = `<strong>ℹ️ Ajuste Folgado (${c.toFixed(2)} mm):</strong><br>Desliza com extrema facilidade, mas pode apresentar ligeiro jogo lateral sob força da correia/rack.`;
+      } else {
+        evalBox.className = 'eval-box eval-nominal';
+        evalBox.innerHTML = `<strong>✓ Ajuste Justo (${c.toFixed(2)} mm):</strong><br>Excelente para impressoras bem calibradas com bico de alta precisão.`;
+      }
+    }
+
+    // Desenhar Corte 2D no Canvas Auxiliar
+    function draw2DSection() {
+      const cvs = document.getElementById('section2d-canvas');
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width;
+      const h = cvs.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h / 2 + 15;
+      const scale = 12; // pixels por mm
+
+      const c = currentClearance;
+
+      // Desenhar Fêmea (cinza)
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1.5;
+
+      const outerW = (W_TOP + 7.0) * scale;
+      const outerH = (H + 3.5) * scale;
+      ctx.fillRect(cx - outerW / 2, cy - outerH, outerW, outerH);
+      ctx.strokeRect(cx - outerW / 2, cy - outerH, outerW, outerH);
+
+      // Recortar Canal
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      const c_neck = (W_BOT + 2 * c) * scale;
+      const c_top = (W_TOP + 2 * c) * scale;
+      const c_h = (H + c) * scale;
+
+      ctx.moveTo(cx - c_neck / 2, cy);
+      ctx.lineTo(cx + c_neck / 2, cy);
+      ctx.lineTo(cx + c_top / 2, cy - c_h);
+      ctx.lineTo(cx - c_top / 2, cy - c_h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Desenhar Macho (Azul)
+      ctx.fillStyle = '#38bdf8';
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const m_neck = W_BOT * scale;
+      const m_top = W_TOP * scale;
+      const m_h = H * scale;
+
+      ctx.moveTo(cx - m_neck / 2, cy - c * scale);
+      ctx.lineTo(cx + m_neck / 2, cy - c * scale);
+      ctx.lineTo(cx + m_top / 2, cy - (m_h + c * scale));
+      ctx.lineTo(cx - m_top / 2, cy - (m_h + c * scale));
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Cotas
+      ctx.fillStyle = '#f59e0b';
+      ctx.font = '10px sans-serif';
+      ctx.fillText(`Folga: ${c.toFixed(2)} mm`, cx + m_top / 2 + 6, cy - m_h / 2);
+    }
+
+    // Interações de UI
+    document.querySelectorAll('.btn-pair').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.btn-pair').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentClearance = parseFloat(btn.dataset.c);
+        const idx = parseInt(btn.dataset.idx);
+        updateDiagnostics(currentClearance, idx);
+        buildScene();
+      });
+    });
+
+    const slideSlider = document.getElementById('slide-slider');
+    const slideDisplay = document.getElementById('slide-val-display');
+    slideSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      slideDisplay.innerText = `${val.toFixed(1)} mm`;
+      if (activeMaleMesh) {
+        activeMaleMesh.position.x = val;
+      }
+    });
+
+    document.getElementById('btn-toggle-all').addEventListener('click', function() {
+      isAllPairsView = !isAllPairsView;
+      this.classList.toggle('active', isAllPairsView);
+      this.innerText = isAllPairsView ? "Mostrar Encaixe Individual" : "Mostrar Todos os 5 Pares";
+      buildScene();
+    });
+
+    document.getElementById('btn-toggle-section').addEventListener('click', function() {
+      const pnl = document.getElementById('section2d-container');
+      const isVisible = pnl.style.display === 'block';
+      pnl.style.display = isVisible ? 'none' : 'block';
+      this.classList.toggle('active', !isVisible);
+      if (!isVisible) draw2DSection();
+    });
+
+    document.getElementById('btn-toggle-wire').addEventListener('click', function() {
+      isWireframe = !isWireframe;
+      maleMaterial.wireframe = isWireframe;
+      femaleMaterial.wireframe = isWireframe;
+      this.classList.toggle('active', isWireframe);
+    });
+
+    const animBtn = document.getElementById('btn-anim-play');
+    animBtn.addEventListener('click', () => {
+      isAnimating = !isAnimating;
+      animBtn.innerHTML = isAnimating ? '<span>⏸</span> Pausar' : '<span>▶</span> Animar Deslizamento';
+      animBtn.classList.toggle('active', isAnimating);
+    });
+
+    // Animation Loop
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (isAnimating && activeMaleMesh && !isAllPairsView) {
+        animTime += 0.035;
+        const slideVal = Math.sin(animTime) * 14;
+        activeMaleMesh.position.x = slideVal;
+        slideSlider.value = slideVal;
+        slideDisplay.innerText = `${slideVal.toFixed(1)} mm`;
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // Resize Handler
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // Start
+    buildScene();
+    updateDiagnostics(0.22, 3);
+    animate();
+  </script>
+</body>
+</html>
