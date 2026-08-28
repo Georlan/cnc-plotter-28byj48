@@ -42,6 +42,7 @@ PIECES = [
     ('99_Teste_Tolerancias.scad',        '99_Teste_Tolerancias.stl',       10),
     ('99_Teste_Folga_Pinhao_FDM.scad',   '99_Teste_Folga_Pinhao_FDM.stl',   3),
     ('99B_Teste_Portaferramenta_FDM.scad','99B_Teste_Portaferramenta_FDM.stl',4),
+    ('99D_Teste_Fixacao_Motor_28BYJ48.scad','99D_Teste_Fixacao_Motor_28BYJ48.stl',1),
     ('90_Componentes_Referencia.scad',   '90_Componentes_Referencia.stl',  -1),
     ('96_Validacao_Curso.scad',          '96_Validacao_Curso.stl',         -1),
     ('CNC_Plotter_Full_Assembly.scad',   'CNC_Plotter_Full_Assembly.stl',  -1),
