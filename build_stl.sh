@@ -32,6 +32,7 @@ SCAD_FILES=(
   "99_Teste_Eixo_D.scad"
   "99_Teste_Folga_Pinhao_FDM.scad"
   "99B_Teste_Portaferramenta_FDM.scad"
+  "99D_Teste_Fixacao_Motor_28BYJ48.scad"
   "placa_testes_completa.scad"
 )
 
