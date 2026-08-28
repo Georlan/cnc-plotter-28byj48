@@ -51,14 +51,13 @@ module carrinho_x_motriz() {
     union() {
       cube([x_carriage_length,base_w,x_carriage_h]);
 
-      // Ponte de montagem continua. Substitui duas orelhas visualmente
-      // desconectadas e distribui o aperto dos parafusos no corpo do carrinho.
-      hull()
-        for (hx=[x_carriage_length/2-motor_flange_dist/2,
-                 x_carriage_length/2+motor_flange_dist/2])
-          translate([hx,motor_face_y,motor_x_axis_z])
-            rotate([-90,0,0])
-              cylinder(r=wall_screw,h=motor_x_mount_standoff+0.1);
+      // Interface canonica do motor: o centro do eixo permanece exatamente no
+      // mesmo datum do pinhao. As orelhas ficam 8 mm acima do eixo e os rasgos
+      // absorvem variacao de fabricante sem alterar o engrenamento.
+      translate([x_carriage_length/2,motor_face_y,motor_x_axis_z])
+        orient_motor_x()
+          motor_28byj48_mount_bridge_local(
+            depth=motor_x_mount_standoff+0.1);
 
       front_beam_key();
     }
@@ -75,26 +74,21 @@ module carrinho_x_motriz() {
         cylinder(r=gear_outer_radius+pinion_pocket_radial_clearance,
                  h=pinion_thickness+2*pinion_pocket_axial_clearance);
 
-    // Corredor coaxial do ressalto e do eixo do 28BYJ-48 ate o bolso do
-    // pinhao. O corpo do motor permanece totalmente fora da peca impressa.
-    translate([x_carriage_length/2,motor_face_y-EPS,motor_x_axis_z])
-      rotate([-90,0,0])
-        cylinder(r=motor_boss_r+motor_mount_clearance,
-                 h=motor_passage_h+EPS);
+    // Ressalto frontal e eixo definem o centro real do motor. Os parafusos nao
+    // sao usados como datum: apenas prendem o motor nos rasgos regulaveis.
+    translate([x_carriage_length/2,motor_face_y,motor_x_axis_z])
+      orient_motor_x()
+        motor_28byj48_boss_passage_local(depth=motor_passage_h+EPS);
 
-    // A ponta do eixo D ultrapassa o bolso do pinhao em 0,70 mm. Um furo
-    // estreito continua ate o comprimento total da saida sem debilitar a
-    // ponte com o diametro maior do ressalto.
-    translate([x_carriage_length/2,motor_face_y-EPS,motor_x_axis_z])
-      rotate([-90,0,0])
-        cylinder(r=motor_shaft_r+motor_mount_clearance,
-                 h=motor_boss_h+motor_shaft_length+
-                   motor_mount_clearance+EPS);
+    translate([x_carriage_length/2,motor_face_y,motor_x_axis_z])
+      orient_motor_x()
+        motor_28byj48_shaft_passage_local(
+          depth=motor_boss_h+motor_shaft_length+
+                motor_mount_clearance+EPS);
 
-    for (hx=[x_carriage_length/2-motor_flange_dist/2,
-             x_carriage_length/2+motor_flange_dist/2])
-      translate([hx,motor_face_y-EPS,motor_x_axis_z])
-        rotate([-90,0,0]) cylinder(r=motor_flange_hole_r,h=8);
+    translate([x_carriage_length/2,motor_face_y,motor_x_axis_z])
+      orient_motor_x()
+        motor_28byj48_mount_slots_local(depth=8);
   }
 }
 
