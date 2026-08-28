@@ -21,31 +21,42 @@ passive_float      = 0.60; // +/-0,60 mm transversal; 1,20 mm total
 pressfit_clearance = 0.15;
 shaft_clearance    = 0.18; // Validado no Teste de Eixo D (#1)
 
-
-
 wall_thin       = 1.80;
 wall_structural = 2.40;
 wall_screw      = 4.50;
 
-// Motor 28BYJ-48 (Dimensões oficiais Datasheet Mouser/Kiatronics)
-motor_body_diameter  = 28.0; // Datasheet: 28 mm
-motor_mount_spacing  = 35.0; // Datasheet: 35 +/- 0.2 mm
-motor_shaft_diameter = 5.0;  // Datasheet: phi 5.0 (0 a -0.1 mm) -> r = 2.5 mm
-motor_shaft_flat     = 3.0;  // Datasheet: 3.0 (0 a -0.1 mm) espessura da seção D
-motor_shaft_flat_len = 6.0;  // Datasheet: 6.0 +/- 0.2 mm comprimento útil do D
-motor_shaft_length   = 8.5;  // Datasheet: 10.0 - 1.5 = 8.5 mm livre da base
+// Motor 28BYJ-48.
+//
+// IMPORTANTE: o eixo e o datum mecanico. Os furos das orelhas NAO passam pela
+// linha do eixo: o desenho dimensional nominal mostra 35 mm entre centros e
+// aproximadamente 8 mm entre o eixo e a linha dos furos. Variantes comerciais
+// podem usar outro espacamento; por isso a peca impressa usa rasgos de ajuste
+// e o ressalto frontal de 9 mm localiza o motor coaxialmente ao pinhao.
+motor_body_diameter  = 28.0;
+motor_mount_spacing  = 35.0; // nominal de referencia; nao define o eixo
+motor_mount_line_offset = 8.0; // magnitude; no frame local os furos ficam em Y=-8
+motor_mount_slot_adjust = 2.0; // +/-2 mm por orelha -> cobre ~31 a 39 mm C-C
+motor_mount_spacing_min = motor_mount_spacing - 2*motor_mount_slot_adjust;
+motor_mount_spacing_max = motor_mount_spacing + 2*motor_mount_slot_adjust;
+motor_mount_screw_clearance_r = 1.75; // rasgo Ø3,5 mm para parafuso M3
+motor_mount_pad_r    = 4.80;
+motor_mount_pad_depth = 3.20;
+
+motor_shaft_diameter = 5.0;
+motor_shaft_flat     = 3.0;
+motor_shaft_flat_len = 6.0;
+motor_shaft_length   = 8.5;
 motor_body_r         = motor_body_diameter / 2;
-motor_body_h         = 19.0; // Datasheet: 19.0 mm
+motor_body_h         = 19.0;
 motor_flange_dist    = motor_mount_spacing;
-motor_flange_hole_r  = 2.1;  // Datasheet: 2-phi 4.2 +/- 0.15 mm
-motor_flange_outer_r = 3.5;  // Datasheet: 2-R3.5 mm
+motor_flange_hole_r  = 2.1;  // furo real da orelha do motor, nao o rasgo impresso
+motor_flange_outer_r = 3.5;
 motor_flange_thickness = 1.0;
-motor_boss_r         = 4.5;  // Datasheet: phi 9.0 mm -> r = 4.5 mm
-motor_boss_h         = 1.5;  // Datasheet: 1.5 mm
+motor_boss_r         = 4.5;
+motor_boss_h         = 1.5;
 motor_shaft_r        = motor_shaft_diameter / 2;
 motor_mount_clearance = 0.25;
 motor_x_mount_standoff = 3.3;
-
 
 // Estrutura fixa X. Os centros dos trilhos ficam em Y=0 e Y=x_rail_spacing.
 x_rail_length     = 220.0;
@@ -204,6 +215,71 @@ function pinion_angle(linear_position, direction=-1,
   phase + direction * linear_position * 360
           / (gear_teeth*rack_pitch);
 
+// =============================================================================
+// Interface canonica de montagem do 28BYJ-48
+// =============================================================================
+// Frame local do motor:
+//   origem = centro do eixo na face de montagem
+//   +Z     = direcao de saida do eixo
+//   furos  = X=+/-spacing/2, Y=-motor_mount_line_offset
+//
+// X/Y usam as orelhas acima do eixo na maquina para manter material de apoio.
+// Z gira 180 graus ao redor do eixo e usa as orelhas abaixo do eixo, evitando
+// uma ponte desconectada acima da torre do carrinho Y.
+module orient_motor_x() { rotate([-90,0,0]) children(); }
+module orient_motor_y() { rotate([0,-90,0]) rotate([0,0,90]) children(); }
+module orient_motor_z() { rotate([-90,0,0]) rotate([0,0,180]) children(); }
+
+module motor_28byj48_mount_hole_instances() {
+  for (sx=[-1,1])
+    translate([sx*motor_mount_spacing/2,-motor_mount_line_offset,0])
+      children();
+}
+
+// Ponte estrutural continua. O hull inclui a faixa inteira de regulagem dos
+// rasgos, portanto continua havendo parede suficiente mesmo com motor variante.
+module motor_28byj48_mount_bridge_local(
+  depth=motor_mount_pad_depth,
+  pad_r=motor_mount_pad_r,
+  slot_adjust=motor_mount_slot_adjust
+) {
+  hull()
+    for (sx=[-1,1], dx=[-slot_adjust,slot_adjust])
+      translate([sx*motor_mount_spacing/2+dx,-motor_mount_line_offset,0])
+        cylinder(r=pad_r,h=depth);
+}
+
+module motor_28byj48_mount_slots_local(
+  depth=8.0,
+  screw_r=motor_mount_screw_clearance_r,
+  slot_adjust=motor_mount_slot_adjust
+) {
+  for (sx=[-1,1])
+    hull()
+      for (dx=[-slot_adjust,slot_adjust])
+        translate([sx*motor_mount_spacing/2+dx,
+                   -motor_mount_line_offset,-EPS])
+          cylinder(r=screw_r,h=depth+2*EPS);
+}
+
+// O ressalto de 9 mm e o verdadeiro localizador radial do motor. Os rasgos
+// servem apenas para prender as orelhas e absorver variacao de fabricante.
+module motor_28byj48_boss_passage_local(
+  depth,
+  clearance=motor_mount_clearance
+) {
+  translate([0,0,-EPS])
+    cylinder(r=motor_boss_r+clearance,h=depth+2*EPS);
+}
+
+module motor_28byj48_shaft_passage_local(
+  depth,
+  clearance=motor_mount_clearance
+) {
+  translate([0,0,-EPS])
+    cylinder(r=motor_shaft_r+clearance,h=depth+2*EPS);
+}
+
 module dovetail_male_x(length, height=dovetail_height,
                        neck=dovetail_width_bottom, top=dovetail_width_top) {
   rotate([90,0,90]) linear_extrude(height=length)
@@ -344,7 +420,6 @@ module pinion_gear(teeth=gear_teeth, pitch=rack_pitch,
     }
 }
 
-
 module d_shaft_solid(h=10) {
   r = motor_shaft_r; // 2.5 mm
   d = motor_shaft_flat / 2; // 1.5 mm (espessura total de 3.0 mm entre as duas faces chatas)
@@ -380,8 +455,6 @@ module d_shaft_hole(h=10, clearance=shaft_clearance, chamfer=0.6) {
     }
   }
 }
-
-
 
 // Compatibilidade com arquivos auxiliares antigos.
 active_z_travel = z_motor_travel;
