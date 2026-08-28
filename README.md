@@ -39,6 +39,7 @@ a folha inteira, mas mantém margem de 15 mm nas extremidades longas.
 | `08_Clips_Fixacao_Papel.scad` | quatro clips de papel | PLA ou PETG |
 | `91_Teste_Engrenamento_FDM.scad` | cupom rack + pinhão | material dos pinhões |
 | `99B_Teste_Portaferramenta_FDM.scad` | cupom do mandril e buchas | PETG recomendado |
+| `99D_Teste_Fixacao_Motor_28BYJ48.scad` | cupom da flange/ressalto do motor | PLA |
 
 `02_Carrinho_X.scad` e `02B_Sapata_X_Passiva_PETG.scad` foram separados para
 não exigir PLA e PETG na mesma placa.
@@ -58,9 +59,27 @@ não exigir PLA e PETG na mesma placa.
 - Relação cinemática correta: **9° de pinhão por mm linear**; 4 mm correspondem
   a 36°, não a uma volta completa.
 
-Antes das peças longas, imprima `99_Teste_Tolerancias.scad` e
-`91_Teste_Engrenamento_FDM.scad`. Use a menor folga que deslize sem força
-após retirar rebarbas.
+Antes das peças longas, imprima `99_Teste_Tolerancias.scad`,
+`91_Teste_Engrenamento_FDM.scad` e `99D_Teste_Fixacao_Motor_28BYJ48.scad`.
+Use a menor folga que deslize sem força após retirar rebarbas e valide o motor
+real no cupom antes de gastar material com os carrinhos completos.
+
+## Interface dos motores 28BYJ-48
+
+A montagem dos três motores usa o **centro do eixo como datum**. O ressalto
+frontal nominal de 9 mm entra num alojamento coaxial e localiza o motor em
+relação ao pinhão. Os parafusos das orelhas servem apenas para prender o motor.
+
+O desenho dimensional nominal do 28BYJ-48 possui `35 mm` entre os furos e uma
+linha de furos deslocada aproximadamente `8 mm` em relação ao centro do eixo.
+Como há variantes comerciais, os suportes usam dois rasgos M3 com `±2 mm` de
+ajuste por orelha, cobrindo aproximadamente `31–39 mm` entre centros sem mover
+o eixo. O modelo visual, os carrinhos X/Y/Z e os parafusos da montagem completa
+usam a mesma interface canônica definida em `00_Parametros.scad`.
+
+O motor Z é girado 180° ao redor do próprio eixo para que suas orelhas fiquem
+abaixo do eixo e ancoradas na torre do carrinho Y. Isso não altera a posição do
+pinhão nem a relação rack/pinhão.
 
 ## Porta-ferramenta universal
 
@@ -182,7 +201,8 @@ Testes:
 - `98_Teste_Interferencias.scad`: bolsos de pinhão e curso Z;
 - `99_Teste_Tolerancias.scad`: cupom físico de folgas;
 - `99_Teste_Folga_Pinhao_FDM.scad`: folgas radial e axial do bolso;
-- `99B_Teste_Portaferramenta_FDM.scad`: mandril e três buchas redutoras.
+- `99B_Teste_Portaferramenta_FDM.scad`: mandril e três buchas redutoras;
+- `99D_Teste_Fixacao_Motor_28BYJ48.scad`: ressalto, eixo e rasgos das orelhas.
 
 Os testes 92–95 e 97–98 devem exportar somente seu cubo marcador de 1 mm.
 Geometria adicional indica colisão.
