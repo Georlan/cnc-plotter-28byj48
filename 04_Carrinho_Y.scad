@@ -6,11 +6,12 @@
   apoio do embolo Z de 14 para 24 mm, reduzindo a folga angular da caneta.
 */
 
-include <00_Parametros.scad>;
+include <00_MotorMount_Final.scad>;
 
 module carrinho_y() {
   dt_local_x = y_carriage_w/2;
   rack_local_x = dt_local_x + (y_rack_center_x-y_dovetail_center_x);
+  // Mantem exatamente a altura cinemática ja validada do eixo/pinhao Y.
   motor_y_axis_z = rack_pitch_height + gear_pitch_radius + gear_mesh_clearance;
   motor_y_face_x = y_carriage_w;
   motor_y_center_y = y_carriage_length/2;
@@ -37,22 +38,17 @@ module carrinho_y() {
         cube([z_slot_w+2*tower_wall,z_slot_d+2*tower_wall,
               z_guide_total_h]);
 
-      // Flanges do motor Y, eixo apontando para -X.
-      for (hy=[motor_y_center_y-motor_flange_dist/2,
-               motor_y_center_y+motor_flange_dist/2])
-        translate([motor_y_face_x,hy,motor_y_axis_z])
-          rotate([0,-90,0]) cylinder(r=wall_screw,h=3.2);
+      // Motor Y: eixo = datum; as orelhas permanecem 8 mm acima do eixo.
+      // A fixacao final usa dois furos redondos M3 no padrao validado.
+      translate([motor_y_face_x,motor_y_center_y,motor_y_axis_z])
+        orient_motor_y()
+          motor_28byj48_mount_final_bridge_local();
 
-      // Flanges do motor Z; a orelha direita se liga ao corpo por um pescoco.
-      for (hx=[z_motor_axis_x_local-motor_flange_dist/2,
-               z_motor_axis_x_local+motor_flange_dist/2])
-        hull() {
-          translate([hx,0,z_motor_axis_z_local])
-            rotate([-90,0,0]) cylinder(r=wall_screw,h=3.2);
-          translate([min(max(hx,wall_screw),y_carriage_w-wall_screw),
-                     0,y_carriage_h-1])
-            rotate([-90,0,0]) cylinder(r=wall_screw,h=3.2);
-        }
+      // Motor Z: gira 180 graus em torno do proprio eixo, colocando as orelhas
+      // 8 mm abaixo do eixo. A mesma fixacao rigida e usada sem alterar Z.
+      translate([z_motor_axis_x_local,0,z_motor_axis_z_local])
+        orient_motor_z()
+          motor_28byj48_mount_final_bridge_local();
     }
 
     // Canais rasos: no maximo 10 mm de ponte, sem suporte no fatiador.
@@ -72,20 +68,19 @@ module carrinho_y() {
         cylinder(r=gear_outer_radius+pinion_pocket_radial_clearance,
                  h=pinion_thickness+2*pinion_pocket_axial_clearance);
 
-    // Passagem do ressalto/eixo do motor Y desde a face lateral ate o bolso.
-    // Antes desta abertura havia 2,8 mm de material atravessado pelo eixo.
-    translate([motor_y_face_x+EPS,motor_y_center_y,motor_y_axis_z])
-      rotate([0,-90,0])
-        cylinder(r=motor_boss_r+motor_mount_clearance,
-                 h=motor_y_passage_h+EPS);
-
-    // A ponta do eixo D passa 0,30 mm alem do bolso do pinhao. Mantemos a
-    // abertura adicional estreita para preservar a parede lateral.
-    translate([motor_y_face_x+EPS,motor_y_center_y,motor_y_axis_z])
-      rotate([0,-90,0])
-        cylinder(r=motor_shaft_r+motor_mount_clearance,
-                 h=motor_boss_h+motor_shaft_length+
-                   motor_mount_clearance+EPS);
+    // Ressalto/eixo do Y localizam o motor coaxialmente. A flange fica travada
+    // pelos dois furos redondos, sem usar os parafusos como datum do eixo.
+    translate([motor_y_face_x,motor_y_center_y,motor_y_axis_z])
+      orient_motor_y()
+        motor_28byj48_boss_passage_local(depth=motor_y_passage_h+EPS);
+    translate([motor_y_face_x,motor_y_center_y,motor_y_axis_z])
+      orient_motor_y()
+        motor_28byj48_shaft_passage_local(
+          depth=motor_boss_h+motor_shaft_length+
+                motor_mount_clearance+EPS);
+    translate([motor_y_face_x,motor_y_center_y,motor_y_axis_z])
+      orient_motor_y()
+        motor_28byj48_mount_final_fasteners_local(depth=8);
 
     // Guia Z passante e corredor externo da cremalheira vertical.
     translate([z_axis_center_x_local-z_slot_w/2,
@@ -103,27 +98,19 @@ module carrinho_y() {
         cylinder(r=gear_outer_radius+pinion_pocket_radial_clearance,
                  h=pinion_thickness+2*pinion_pocket_axial_clearance);
 
-    // Passagem coaxial do motor Z ate o bolso do pinhao. A flange apoia na
-    // face dianteira; somente ressalto e eixo entram no carrinho.
-    translate([z_motor_axis_x_local,-EPS,z_motor_axis_z_local])
-      rotate([-90,0,0])
-        cylinder(r=motor_boss_r+motor_mount_clearance,
-                 h=motor_z_passage_h+EPS);
-    translate([z_motor_axis_x_local,-EPS,z_motor_axis_z_local])
-      rotate([-90,0,0])
-        cylinder(r=motor_shaft_r+motor_mount_clearance,
-                 h=motor_boss_h+motor_shaft_length+
-                   motor_mount_clearance+EPS);
-
-    for (hy=[motor_y_center_y-motor_flange_dist/2,
-             motor_y_center_y+motor_flange_dist/2])
-      translate([motor_y_face_x+EPS,hy,motor_y_axis_z])
-        rotate([0,-90,0]) cylinder(r=motor_flange_hole_r,h=8);
-
-    for (hx=[z_motor_axis_x_local-motor_flange_dist/2,
-             z_motor_axis_x_local+motor_flange_dist/2])
-      translate([hx,-EPS,z_motor_axis_z_local])
-        rotate([-90,0,0]) cylinder(r=motor_flange_hole_r,h=8);
+    // Ressalto/eixo do Z mantem a cinemática; o motor segue apenas girado ao
+    // redor do proprio eixo para levar as orelhas a uma regiao estrutural.
+    translate([z_motor_axis_x_local,0,z_motor_axis_z_local])
+      orient_motor_z()
+        motor_28byj48_boss_passage_local(depth=motor_z_passage_h+EPS);
+    translate([z_motor_axis_x_local,0,z_motor_axis_z_local])
+      orient_motor_z()
+        motor_28byj48_shaft_passage_local(
+          depth=motor_boss_h+motor_shaft_length+
+                motor_mount_clearance+EPS);
+    translate([z_motor_axis_x_local,0,z_motor_axis_z_local])
+      orient_motor_z()
+        motor_28byj48_mount_final_fasteners_local(depth=8);
   }
 }
 

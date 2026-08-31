@@ -1,11 +1,19 @@
+# CAD intermediario / formatos que nao entram no repositorio
 *.FCStd
-*.step
+*.FCStd1
 *.FCBak
+*.step
+*.STEP
+*.stp
+*.STP
+*.stl
+*.STL
+
+# Bambu Lab: .3mf e o unico formato de fabricacao versionado.
+# Os .scad continuam sendo a fonte parametrica oficial.
+
 __pycache__/
 freecad_parts/
 .DS_Store
 *.mp4
 *.pdf
-
-# Artefatos gerados: os arquivos OpenSCAD sao a fonte oficial.
-/*.stl
