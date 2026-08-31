@@ -6,15 +6,20 @@ on:
     paths:
       - "**/*.scad"
       - "build_stl.sh"
+      - "build_3mf.sh"
       - "validate_geometry.py"
       - ".github/workflows/openscad-validation.yml"
   pull_request:
     paths:
       - "**/*.scad"
       - "build_stl.sh"
+      - "build_3mf.sh"
       - "validate_geometry.py"
       - ".github/workflows/openscad-validation.yml"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   validate:
@@ -23,15 +28,38 @@ jobs:
       QT_QPA_PLATFORM: offscreen
 
     steps:
-      - name: Checkout
+      - name: Checkout source branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+          fetch-depth: 0
 
-      - name: Install OpenSCAD
+      - name: Install OpenSCAD and 3MF validation tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y openscad fonts-liberation
+          sudo apt-get install -y openscad fonts-liberation unzip
 
-      - name: Compile printable STLs
+      - name: Build Bambu Lab 3MF package
+        run: |
+          chmod +x ./build_3mf.sh
+          ./build_3mf.sh
+
+      - name: Commit generated 3MF package
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          TARGET_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "3MF package already up to date."
+          else
+            git commit -m "print: generate Bambu Lab 3MF package"
+            git push origin "HEAD:${TARGET_BRANCH}"
+          fi
+
+      - name: Compile printable STLs for validation only
         run: |
           chmod +x ./build_stl.sh
           ./build_stl.sh
@@ -44,11 +72,11 @@ jobs:
       - name: Run full geometry validation
         run: python3 validate_geometry.py
 
-      - name: Upload compiled STLs
+      - name: Upload Bambu Lab 3MF package
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: openscad-stls-${{ github.sha }}
-          path: "*.stl"
+          name: bambulab-3mf-${{ github.sha }}
+          path: "bambulab_3mf/**/*.3mf"
           if-no-files-found: error
           retention-days: 14
