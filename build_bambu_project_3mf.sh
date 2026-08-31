@@ -24,29 +24,15 @@ chmod +x "$APPIMAGE"
 mv /tmp/squashfs-root "$APPDIR"
 
 BAMBU_BIN="$APPDIR/AppRun"
-if [[ ! -x "$BAMBU_BIN" ]]; then
-  echo "Bambu Studio AppRun not found" >&2
-  exit 1
-fi
+test -x "$BAMBU_BIN"
 
-PROFILE_ROOT="$APPDIR"
-find_profile() {
-  local kind="$1"
-  local pattern="$2"
-  find "$PROFILE_ROOT" -type f -path "*/profiles/BBL/${kind}/*.json" -iname "$pattern" | grep -vi 'mini' | head -n1
-}
+PROFILE_BASE="$APPDIR/resources/profiles/BBL"
+MACHINE="$PROFILE_BASE/machine/Bambu Lab A1 0.4 nozzle.json"
+PROCESS="$PROFILE_BASE/process/0.16mm Optimal @BBL A1.json"
+PLA="$PROFILE_BASE/filament/Generic PLA @BBL A1.json"
+PETG="$PROFILE_BASE/filament/Generic PETG @BBL A1.json"
 
-MACHINE=$(find_profile machine '*A1*0.4*nozzle*.json')
-PROCESS=$(find_profile process '*0.16mm*Optimal*A1*.json')
-PLA=$(find_profile filament '*Generic*PLA*A1*.json')
-PETG=$(find_profile filament '*Generic*PETG*A1*.json')
-
-# Fallbacks for profile naming changes across Bambu Studio releases.
-[[ -n "${MACHINE:-}" ]] || MACHINE=$(find "$PROFILE_ROOT" -type f -path '*/profiles/BBL/machine/*.json' -iname '*A1*0.4*.json' | grep -vi mini | head -n1)
-[[ -n "${PROCESS:-}" ]] || PROCESS=$(find "$PROFILE_ROOT" -type f -path '*/profiles/BBL/process/*.json' -iname '*0.16mm*Optimal*.json' | head -n1)
-[[ -n "${PLA:-}" ]] || PLA=$(find "$PROFILE_ROOT" -type f -path '*/profiles/BBL/filament/*.json' -iname '*Generic*PLA*.json' | head -n1)
-[[ -n "${PETG:-}" ]] || PETG=$(find "$PROFILE_ROOT" -type f -path '*/profiles/BBL/filament/*.json' -iname '*Generic*PETG*.json' | head -n1)
-
+# These exact profiles are pinned to the official Bambu Studio release above.
 for f in "$MACHINE" "$PROCESS" "$PLA" "$PETG"; do
   test -s "$f" || { echo "Required Bambu profile not found: $f" >&2; exit 1; }
 done
@@ -91,7 +77,7 @@ export_one() {
   unzip -l "$OUT_DIR/$base" | grep -q 'Metadata/project_settings.config'
   unzip -l "$OUT_DIR/$base" | grep -q 'Metadata/model_settings.config'
 
-  # Re-open through Bambu Studio CLI; failure here means the project is not safe to publish.
+  # Re-open through Bambu Studio CLI; failure means the project is not published.
   xvfb-run -a "$BAMBU_BIN" --debug 2 --info "$OUT_DIR/$base" >/tmp/bambu-info.log 2>&1 || {
     cat /tmp/bambu-info.log >&2
     exit 1
