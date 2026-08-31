@@ -11,6 +11,9 @@ BAMBU_SHA256="d501b103fac5424513ec0e8d6bc145fb30719de2c7d94d7320d723740c81a7fd"
 
 mkdir -p "$OUT_DIR"
 rm -rf "$APPDIR"
+# Bambu Studio CLI emits result.json as a side effect. It is diagnostic output,
+# not part of the printable package, so never leave it in the repository tree.
+rm -f result.json "$OUT_DIR/result.json"
 
 if [[ ! -f "$APPIMAGE" ]]; then
   curl -L --fail --retry 3 -o "$APPIMAGE" "$BAMBU_URL"
@@ -60,7 +63,7 @@ export_one() {
   fi
 
   echo "[Bambu project] $input -> $OUT_DIR/$base"
-  rm -f "$OUT_DIR/$base"
+  rm -f "$OUT_DIR/$base" result.json "$OUT_DIR/result.json"
 
   xvfb-run -a "$BAMBU_BIN" \
     --debug 2 \
@@ -82,6 +85,8 @@ export_one() {
     cat /tmp/bambu-info.log >&2
     exit 1
   }
+
+  rm -f result.json "$OUT_DIR/result.json"
 }
 
 for input in \
@@ -98,6 +103,8 @@ for input in \
   test -s "$input"
   export_one "$input"
 done
+
+rm -f result.json "$OUT_DIR/result.json"
 
 echo
 echo "Native Bambu Studio project 3MF files:"
