@@ -44,6 +44,42 @@ a folha inteira, mas mantém margem de 15 mm nas extremidades longas.
 `02_Carrinho_X.scad` e `02B_Sapata_X_Passiva_PETG.scad` foram separados para
 não exigir PLA e PETG na mesma placa.
 
+### 3MF para abrir no Bambu Studio
+
+Para imprimir pela Bambu Lab A1, prefira os arquivos da pasta
+[`bambu_project_3mf/`](bambu_project_3mf/). Eles são exportados novamente pelo
+**Bambu Studio oficial** e incluem a estrutura de projeto do Bambu, em vez de
+serem apenas contêineres de malha 3MF produzidos pelo OpenSCAD.
+
+O gerador está fixado em:
+
+- Bambu Studio `2.8.2.61`;
+- impressora `Bambu Lab A1 0.4 nozzle`;
+- processo-base `0.16mm Optimal @BBL A1`;
+- `Generic PLA @BBL A1` para `01`, `01B`, `02`, `03`, `04` e `08`;
+- `Generic PETG @BBL A1` para `02B`, `05`, `06` e `07`.
+
+Cada projeto é verificado como ZIP/3MF, precisa conter
+`Metadata/project_settings.config` e `Metadata/model_settings.config`, e é
+reaberto pelo Bambu Studio CLI antes de ser publicado pelo CI.
+
+A pasta [`bambulab_3mf/`](bambulab_3mf/) continua existindo como saída
+**geométrica** do OpenSCAD. Ela é útil para intercâmbio e inspeção, mas o Bambu
+Studio pode tratá-la como 3MF genérico/importado e pedir confirmação de
+configuração. Para o fluxo normal de impressão, use `bambu_project_3mf/`.
+
+Os projetos Bambu usam um perfil-base válido; os ajustes mecânicos específicos
+de brim, paredes e preenchimento continuam descritos na seção **Fatiamento
+econômico na Bambu Lab A1** abaixo. Antes de enviar à impressora, confira na
+placa o material selecionado e mantenha suporte desativado nas regiões de guia.
+
+Para regenerar os dois conjuntos:
+
+```bash
+./build_3mf.sh
+./build_bambu_project_3mf.sh
+```
+
 ## Parâmetros principais
 
 - Trilhos X: `220 x 26 mm`; distância entre centros: `240 mm`.
