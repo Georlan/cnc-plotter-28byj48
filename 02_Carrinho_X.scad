@@ -10,7 +10,7 @@
   acima da sela: o parafuso aperta no ressalto, nao bloqueia o movimento lateral.
 */
 
-include <00_Parametros.scad>;
+include <00_MotorMount_Final.scad>;
 
 module front_beam_key() {
   difference() {
@@ -41,6 +41,7 @@ module rear_beam_key(z0=passive_saddle_h) {
 }
 
 module carrinho_x_motriz() {
+  // Mantem exatamente a altura cinemática ja validada do eixo/pinhao.
   motor_x_axis_z = rack_pitch_height + gear_pitch_radius + gear_mesh_clearance;
   motor_face_y = -motor_x_mount_standoff;
   pinion_pocket_y0 = x_rack_center_y-pinion_thickness/2
@@ -51,12 +52,12 @@ module carrinho_x_motriz() {
     union() {
       cube([x_carriage_length,base_w,x_carriage_h]);
 
-      // Interface canonica do motor: o centro do eixo permanece exatamente no
-      // mesmo datum do pinhao. As orelhas ficam 8 mm acima do eixo e os rasgos
-      // absorvem variacao de fabricante sem alterar o engrenamento.
+      // Interface final do motor: o centro do eixo permanece exatamente no
+      // datum do pinhao. O ressalto frontal localiza o eixo; a orelha esquerda
+      // usa furo redondo e a direita apenas um rasgo curto de compensacao.
       translate([x_carriage_length/2,motor_face_y,motor_x_axis_z])
         orient_motor_x()
-          motor_28byj48_mount_bridge_local(
+          motor_28byj48_mount_final_bridge_local(
             depth=motor_x_mount_standoff+0.1);
 
       front_beam_key();
@@ -74,8 +75,8 @@ module carrinho_x_motriz() {
         cylinder(r=gear_outer_radius+pinion_pocket_radial_clearance,
                  h=pinion_thickness+2*pinion_pocket_axial_clearance);
 
-    // Ressalto frontal e eixo definem o centro real do motor. Os parafusos nao
-    // sao usados como datum: apenas prendem o motor nos rasgos regulaveis.
+    // Ressalto frontal e eixo definem o centro real do motor. A fixacao das
+    // orelhas trava a flange sem alterar a distancia de engrenamento.
     translate([x_carriage_length/2,motor_face_y,motor_x_axis_z])
       orient_motor_x()
         motor_28byj48_boss_passage_local(depth=motor_passage_h+EPS);
@@ -88,7 +89,7 @@ module carrinho_x_motriz() {
 
     translate([x_carriage_length/2,motor_face_y,motor_x_axis_z])
       orient_motor_x()
-        motor_28byj48_mount_slots_local(depth=8);
+        motor_28byj48_mount_final_fasteners_local(depth=8);
   }
 }
 

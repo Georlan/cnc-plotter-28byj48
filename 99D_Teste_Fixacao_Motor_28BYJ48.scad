@@ -1,20 +1,23 @@
 /*
-  Cupom fisico da interface do motor 28BYJ-48.
+  Cupom fisico da interface FINAL do motor 28BYJ-48.
 
-  Objetivo:
-    - validar o ressalto frontal de 9 mm como datum coaxial;
-    - validar passagem do eixo;
-    - validar os dois rasgos M3;
-    - absorver variantes comerciais de aproximadamente 31 a 39 mm entre
-      centros sem deslocar o eixo do motor.
+  A versao anterior deste cupom usava dois rasgos longos para descobrir se o
+  motor real coincidia com a geometria nominal. Esse teste fisico foi aprovado.
+  A interface final agora replica exatamente as pecas de producao:
 
-  Monte um motor real no cupom ANTES de reimprimir os carrinhos completos.
-  O motor deve assentar pela face/ressalto; os parafusos apenas prendem.
+    - ressalto frontal de 9 mm como datum coaxial;
+    - furo redondo M3 na orelha esquerda;
+    - rasgo curto na orelha direita;
+    - mesma altura/centro de eixo ja validado.
+
+  Reimprimir este cupom e opcional; ele existe para inspecao e validacao da
+  geometria final antes de uma futura troca de lote/fabricante de motor.
 */
 
-include <00_Parametros.scad>;
+include <00_MotorMount_Final.scad>;
 
-coupon_w = motor_mount_spacing_max + 2*(motor_mount_pad_r + 2.0);
+coupon_w = motor_mount_spacing
+           + 2*(motor_mount_pad_r + motor_mount_final_slot_adjust + 2.0);
 coupon_d = 34.0;
 coupon_h = 4.0;
 axis_x = coupon_w/2;
@@ -24,10 +27,8 @@ assert(axis_y-motor_mount_line_offset-motor_mount_pad_r > 0,
        "Cupom curto no lado das orelhas");
 assert(axis_y+motor_body_r <= coupon_d+0.1,
        "Cupom curto no lado do corpo do motor");
-assert(motor_mount_spacing_min <= 32.0,
-       "Rasgos nao cobrem variante de 32 mm");
-assert(motor_mount_spacing_max >= 35.0,
-       "Rasgos nao cobrem nominal de 35 mm");
+assert(motor_mount_final_slot_adjust <= 1.0,
+       "Fixacao final nao deve voltar a usar rasgo longo");
 
 difference() {
   cube([coupon_w,coupon_d,coupon_h]);
@@ -41,7 +42,7 @@ difference() {
   translate([axis_x,axis_y,0])
     motor_28byj48_shaft_passage_local(depth=coupon_h);
 
-  // Rasgos ao longo da linha entre orelhas.
+  // Fixacao final: um furo redondo + um rasgo curto.
   translate([axis_x,axis_y,0])
-    motor_28byj48_mount_slots_local(depth=coupon_h);
+    motor_28byj48_mount_final_fasteners_local(depth=coupon_h);
 }
