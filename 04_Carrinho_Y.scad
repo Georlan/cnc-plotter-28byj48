@@ -39,7 +39,7 @@ module carrinho_y() {
               z_guide_total_h]);
 
       // Motor Y: eixo = datum; as orelhas permanecem 8 mm acima do eixo.
-      // A fixacao final usa um furo redondo de referencia e um rasgo curto.
+      // A fixacao final usa dois furos redondos M3 no padrao validado.
       translate([motor_y_face_x,motor_y_center_y,motor_y_axis_z])
         orient_motor_y()
           motor_28byj48_mount_final_bridge_local();
@@ -69,7 +69,7 @@ module carrinho_y() {
                  h=pinion_thickness+2*pinion_pocket_axial_clearance);
 
     // Ressalto/eixo do Y localizam o motor coaxialmente. A flange fica travada
-    // pelo furo redondo + rasgo curto, sem usar os parafusos como datum.
+    // pelos dois furos redondos, sem usar os parafusos como datum do eixo.
     translate([motor_y_face_x,motor_y_center_y,motor_y_axis_z])
       orient_motor_y()
         motor_28byj48_boss_passage_local(depth=motor_y_passage_h+EPS);
