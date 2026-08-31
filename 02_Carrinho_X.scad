@@ -53,8 +53,8 @@ module carrinho_x_motriz() {
       cube([x_carriage_length,base_w,x_carriage_h]);
 
       // Interface final do motor: o centro do eixo permanece exatamente no
-      // datum do pinhao. O ressalto frontal localiza o eixo; a orelha esquerda
-      // usa furo redondo e a direita apenas um rasgo curto de compensacao.
+      // datum do pinhao. O ressalto frontal localiza o eixo e as duas orelhas
+      // usam furos redondos M3 no padrao final fisicamente validado.
       translate([x_carriage_length/2,motor_face_y,motor_x_axis_z])
         orient_motor_x()
           motor_28byj48_mount_final_bridge_local(
