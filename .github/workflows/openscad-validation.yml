@@ -36,10 +36,13 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
           fetch-depth: 0
 
-      - name: Install OpenSCAD and 3MF validation tools
+      - name: Install OpenSCAD and Bambu Studio runtime
         run: |
           sudo apt-get update
-          sudo apt-get install -y openscad fonts-liberation unzip xvfb libfuse2 curl
+          sudo apt-get install -y \
+            openscad fonts-liberation unzip xvfb libfuse2 curl \
+            libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 \
+            gstreamer1.0-plugins-base gstreamer1.0-plugins-good
 
       - name: Build generic geometry 3MF package
         run: |
