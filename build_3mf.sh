@@ -5,10 +5,9 @@ OUT="bambulab_3mf"
 TEST_OUT="$OUT/testes"
 mkdir -p "$OUT" "$TEST_OUT"
 
-# Preserve Bambu Studio projects already created/validated manually.
-if [[ -f 02_Carrinho_X.3mf ]]; then
-  mv -f 02_Carrinho_X.3mf "$OUT/02_Carrinho_X.3mf"
-fi
+# Preserve only validation coupons that may carry manually tuned Bambu Studio
+# settings. Production geometry must always be regenerated from the current
+# OpenSCAD sources so stale 3MF meshes cannot survive CAD changes.
 if [[ -f 91_Teste_Engrenamento_FDM.3mf ]]; then
   mv -f 91_Teste_Engrenamento_FDM.3mf "$TEST_OUT/91_Teste_Engrenamento_FDM.3mf"
 fi
@@ -29,12 +28,10 @@ build_3mf() {
   unzip -l "$dst" | grep -q "3D/3dmodel.model"
 }
 
-# Main printable parts. Preserve the manually prepared Carrinho X project.
+# Main printable parts. Always regenerate production geometry from OpenSCAD.
 build_3mf 01_Base_Trilho_X.scad "$OUT/01_Base_Trilho_X.3mf"
 build_3mf 01B_Trilho_X_Passivo.scad "$OUT/01B_Trilho_X_Passivo.3mf"
-if [[ ! -s "$OUT/02_Carrinho_X.3mf" ]]; then
-  build_3mf 02_Carrinho_X.scad "$OUT/02_Carrinho_X.3mf"
-fi
+build_3mf 02_Carrinho_X.scad "$OUT/02_Carrinho_X.3mf"
 build_3mf 02B_Sapata_X_Passiva_PETG.scad "$OUT/02B_Sapata_X_Passiva_PETG.3mf"
 build_3mf 03_Trilho_Y.scad "$OUT/03_Trilho_Y.3mf"
 build_3mf 04_Carrinho_Y.scad "$OUT/04_Carrinho_Y.3mf"
