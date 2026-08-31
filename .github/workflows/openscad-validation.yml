@@ -7,6 +7,7 @@ on:
       - "**/*.scad"
       - "build_stl.sh"
       - "build_3mf.sh"
+      - "build_bambu_project_3mf.sh"
       - "validate_geometry.py"
       - ".github/workflows/openscad-validation.yml"
   pull_request:
@@ -14,6 +15,7 @@ on:
       - "**/*.scad"
       - "build_stl.sh"
       - "build_3mf.sh"
+      - "build_bambu_project_3mf.sh"
       - "validate_geometry.py"
       - ".github/workflows/openscad-validation.yml"
   workflow_dispatch:
@@ -37,14 +39,19 @@ jobs:
       - name: Install OpenSCAD and 3MF validation tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y openscad fonts-liberation unzip
+          sudo apt-get install -y openscad fonts-liberation unzip xvfb libfuse2 curl
 
-      - name: Build Bambu Lab 3MF package
+      - name: Build generic geometry 3MF package
         run: |
           chmod +x ./build_3mf.sh
           ./build_3mf.sh
 
-      - name: Commit generated 3MF package
+      - name: Build native Bambu Studio project 3MF package
+        run: |
+          chmod +x ./build_bambu_project_3mf.sh
+          ./build_bambu_project_3mf.sh
+
+      - name: Commit generated 3MF packages
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           TARGET_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
@@ -53,9 +60,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
-            echo "3MF package already up to date."
+            echo "3MF packages already up to date."
           else
-            git commit -m "print: generate Bambu Lab 3MF package"
+            git commit -m "print: generate Bambu Studio project 3MF package"
             git push origin "HEAD:${TARGET_BRANCH}"
           fi
 
@@ -72,11 +79,20 @@ jobs:
       - name: Run full geometry validation
         run: python3 validate_geometry.py
 
-      - name: Upload Bambu Lab 3MF package
+      - name: Upload generic geometry 3MF package
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bambulab-3mf-${{ github.sha }}
+          name: bambulab-geometry-3mf-${{ github.sha }}
           path: "bambulab_3mf/**/*.3mf"
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload native Bambu Studio project 3MF package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bambu-project-3mf-${{ github.sha }}
+          path: "bambu_project_3mf/*.3mf"
           if-no-files-found: error
           retention-days: 14
